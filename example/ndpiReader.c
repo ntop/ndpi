@@ -2195,6 +2195,8 @@ static void printFlow(u_int32_t id, struct ndpi_flow_info *flow, u_int16_t threa
       fprintf(out, "]");
     }
 
+  if(flow->idle_timeout_sec) fprintf(out, "[Idle Timeout: %d]", flow->idle_timeout_sec);
+
 #ifdef HEURISTICS_CODE
     if(flow->ssh_tls.browser_heuristics.is_safari_tls)  fprintf(out, "[Safari]");
     if(flow->ssh_tls.browser_heuristics.is_firefox_tls) fprintf(out, "[Firefox]");

@@ -1446,6 +1446,7 @@ struct ndpi_flow_struct {
       ndpi_cipher_weakness server_unsafe_cipher;
 
       u_int32_t quic_version;
+      u_int32_t quic_idle_timeout_sec;
     } tls_quic; /* Used also by DTLS and POPS/IMAPS/SMTPS/FTPS */
 
     struct {
