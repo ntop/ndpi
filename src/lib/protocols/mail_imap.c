@@ -33,7 +33,6 @@
 
 static void ndpi_int_mail_imap_add_connection(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow,
 					      u_int16_t protocol) {
-  flow->guessed_protocol_id = NDPI_PROTOCOL_UNKNOWN; /* Avoid IMAPS to be used s sub-protocol */
   ndpi_set_detected_protocol(ndpi_struct, flow, protocol, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
 }
 

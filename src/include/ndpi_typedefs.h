@@ -1266,8 +1266,10 @@ struct ndpi_tls_obfuscated_heuristic_matching_set {
 struct ndpi_flow_struct {
   u_int16_t detected_protocol_stack[NDPI_PROTOCOL_SIZE];
 
-  /* init parameter, internal used to set up timestamp,... */
-  u_int16_t guessed_protocol_id, guessed_protocol_id_by_ip, guessed_category, guessed_header_category;
+  u_int16_t guessed_protocol_id;       /* Classification by-port. Set with the first pkt and never updated */
+  u_int16_t guessed_protocol_id_by_ip; /* Classification by-ip. Set with the first pkt and never updated */
+  u_int16_t fast_callback_protocol_id; /* Partial/incomplete classification. Used internally as first callback when iterating all the protocols */
+  u_int16_t guessed_category, guessed_header_category;
   u_int8_t l4_proto, protocol_id_already_guessed:1, fail_with_unknown:1,
     init_finished:1, client_packet_direction:1, packet_direction:1, is_ipv6:1, first_pkt_fully_encrypted:1, skip_entropy_check: 1;
   u_int8_t monitoring:1, _pad:7;
