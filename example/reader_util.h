@@ -333,7 +333,7 @@ typedef struct ndpi_flow_info {
     char geolocation_iata_code[4];
   } dns;
 
-  ndpi_multimedia_flow_type multimedia_flow_type;
+  u_int8_t multimedia_flow_types;
   
   void *src_id, *dst_id;
   char *tcp_fingerprint;
