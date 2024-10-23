@@ -833,7 +833,6 @@ const char* ndpi_get_flow_info(struct ndpi_flow_struct const * const flow,
 
 char* ndpi_ssl_version2str(char *buf, int buf_len,
                            u_int16_t version, u_int8_t *unknown_tls_version) {
-
   if(unknown_tls_version)
     *unknown_tls_version = 0;
 
@@ -1260,6 +1259,7 @@ int ndpi_dpi2json(struct ndpi_detection_module_struct *ndpi_struct,
   char buf[64];
   char const *host_server_name;
   char quic_version[16];
+  u_int i;
 
   if(flow == NULL) return(-1);
 
@@ -1323,8 +1323,25 @@ int ndpi_dpi2json(struct ndpi_detection_module_struct *ndpi_struct,
     ndpi_serialize_string_uint32(serializer, "query_type",  flow->protos.dns.query_type);
     ndpi_serialize_string_uint32(serializer, "rsp_type",    flow->protos.dns.rsp_type);
 
-    inet_ntop(AF_INET, &flow->protos.dns.rsp_addr, buf, sizeof(buf));
-    ndpi_serialize_string_string(serializer, "rsp_addr",    buf);
+    ndpi_serialize_start_of_list(serializer, "rsp_addr");
+
+    for(i=0; i<flow->protos.dns.num_rsp_addr; i++) {
+      char buf[64];
+      u_int len;
+
+      if(flow->protos.dns.is_rsp_addr_ipv6[i] == 0) {
+	inet_ntop(AF_INET, &flow->protos.dns.rsp_addr[i].ipv4, buf, sizeof(buf));
+      } else {
+	inet_ntop(AF_INET6, &flow->protos.dns.rsp_addr[i].ipv6, buf, sizeof(buf));
+      }
+
+      len = strlen(buf);
+      snprintf(&buf[len], sizeof(buf)-len, ",ttl=%u", flow->protos.dns.rsp_addr_ttl[i]);
+      ndpi_serialize_string_string(serializer, "addr", buf);
+    }
+
+    ndpi_serialize_end_of_list(serializer);
+
     ndpi_serialize_end_of_block(serializer);
     break;
 
