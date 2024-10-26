@@ -13,9 +13,11 @@ As part of these features, we provide DGA detection.
  
 DGA detection heuristic is implemented [**here**](https://github.com/ntop/nDPI/blob/328ff2465709372c595cb25d99135aa515da3c5a/src/lib/ndpi_main.c#L6729).
 
-DGA performances test and tracking allows us to detect automatically if a modification is harmful.
+DGA performance tests and tracking allow us to detect automatically if a modification is harmful.
 
 The modification can be a simple threshold change or a future lightweight ML approach.
+
+Developers interested in DGA detection using ML should also visit [this folder](../../dga).
 
 ## Used data
 
