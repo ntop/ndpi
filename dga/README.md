@@ -1,8 +1,8 @@
 # Overview
 
-This folder contains training and inference scripts for two models based on different technologies: MLP (multi-layer perceptron) using scikit-learn and an LSTM-based neural network using TensorFlow. Each model has its own folder with its own training and testing scripts.
+This folder contains training and inference scripts for two models based on different technologies: MLP (multi-layer perceptron) using scikit-learn and an LSTM-based neural network using TensorFlow. Each model has its own folder with training and testing scripts. Developers interested in DGA detection in nDPI should also visit [this folder](../tests/dga) containing the original ML implementation.
 
-The test scripts are only intended to show how to use an already trained model.
+The test scripts only show how to use an already-trained model.
 
 ## Requirements
 
