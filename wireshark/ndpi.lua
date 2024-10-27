@@ -321,13 +321,15 @@ local tcp_fingeprint_db = {
    ['194_128_32768_e75eea53a4fd']  = "Windows",
    ['194_128_32768_84fee6d35dde']  = "Windows",
    
-   ['194_64_65535_15db81ff8b0d'] = "iOS/iPad OS",
-   ['2_64_65535_41a9d5af7dd3']   = "iOS/iPad OS",
-   ['194_64_65535_dd5737e4fedb'] = "iOS/iPad OS",
-   
-   ['194_64_65535_d29295416479'] = "macOS",
+   ['194_64_65535_15db81ff8b0d'] = "iOS",
+   ['2_64_65535_41a9d5af7dd3']   = "iOS",
+   ['194_64_65535_dd5737e4fedb'] = "iOS",
+   ['194_64_65535_d3a424420f2a'] = 'iPad OS",
+   ['194_64_0_d29295416479'    ] = 'iPad OS",
+
+   ['194_64_65535_d29295416479'] = "macOS/iPad OS",
+   ['2_64_65535_d29295416479']   = "macOS/iPad OS",
    ['194_64_65535_78dd6871cb6d'] = "macOS",
-   ['2_64_65535_d29295416479']   = "macOS",
    ['2_64_65535_dd5737e4fedb']   = "macOS",
 }
 
@@ -2586,6 +2588,7 @@ local function tcp_dialog_menu()
       if(tcp_fingeprint_db[v] ~= nil) then
 	 v = v .. " [" .. tcp_fingeprint_db[v] .."]"
       end
+      
       label = label .. string.format("%-32s", shortenString(k,32)).."\t"..v.."\n"
       if(i == 50) then break else i = i + 1 end
    end
