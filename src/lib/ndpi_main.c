@@ -6963,9 +6963,10 @@ static int ndpi_init_packet(struct ndpi_detection_module_struct *ndpi_str,
 
 	      options_fp_len += rc;
 
-	      if(kind == 0) /* EOF */
-		break;
-	      else if(kind == 1) /* NOP */
+	      if(kind == 0) /* EOL */ {
+		i++;
+		continue;
+	      } else if(kind == 1) /* NOP */
 		i++;
 	      else if((i+1) < options_len) {
 		u_int8_t len = options[i+1];
@@ -6975,7 +6976,7 @@ static int ndpi_init_packet(struct ndpi_detection_module_struct *ndpi_str,
 #endif
 
 		if(len == 0)
-		  break;
+		  continue;
 		else if(kind == 8) {
 		  /* Timestamp: ignore it */
 		} else if(len > 2) {
@@ -6995,6 +6996,10 @@ static int ndpi_init_packet(struct ndpi_detection_module_struct *ndpi_str,
 	      }
 	    } /* for */
 
+#ifdef DEBUG_TCP_OPTIONS
+	    printf("Raw Options Fingerprint: %s\n", options_fp);
+#endif
+	    
 	    ndpi_sha256((const u_char*)options_fp, options_fp_len, sha_hash);
 
 	    snprintf(&fingerprint[fp_idx], sizeof(fingerprint)-fp_idx, "%02x%02x%02x%02x%02x%02x",
