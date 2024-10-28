@@ -1775,7 +1775,7 @@ extern "C" {
 
   u_int ndpi_hex2bin(u_char *out, u_int out_len, u_char* in, u_int in_len);
   u_int ndpi_bin2hex(u_char *out, u_int out_len, u_char* in, u_int in_len);
-  
+
   /* ******************************* */
 
   int ndpi_des_init(struct ndpi_des_struct *des, double alpha, double beta, float significance);
@@ -2301,6 +2301,7 @@ extern "C" {
   int ndpi_snprintf(char * str, size_t size, char const * format, ...);
   struct tm *ndpi_gmtime_r(const time_t *timep, struct tm *result);
   char* ndpi_strrstr(const char *haystack, const char *needle);
+  int ndpi_str_endswith(const char *s, const char *suffix);
 
   /* ******************************* */
 
@@ -2322,16 +2323,16 @@ extern "C" {
 			   u_int16_t cleartext_msg_len,
 			   u_int16_t *encrypted_msg_len,
 			   u_char encrypt_key[64]);
-  
+
   char* ndpi_quick_decrypt(const char *encrypted_msg,
 			   u_int16_t encrypted_msg_len,
 			   u_int16_t *decrypted_msg_len,
 			   u_char decrypt_key[64]);
- 
+
   /* ******************************* */
 
   const char* ndpi_print_os_hint(u_int8_t os_hint);
-  
+
   /* ******************************* */
 
   bool ndpi_serialize_flow_fingerprint(struct ndpi_detection_module_struct *ndpi_str,
@@ -2348,7 +2349,7 @@ extern "C" {
 				 u_int32_t epoch_now, u_int32_t ttl);
   bool ndpi_address_cache_dump(struct ndpi_address_cache *cache, char *path, u_int32_t epoch_now);
   u_int32_t ndpi_address_cache_restore(struct ndpi_address_cache *cache, char *path, u_int32_t epoch_now);
-  
+
 
   bool ndpi_cache_address(struct ndpi_detection_module_struct *ndpi_struct,
 			ndpi_ip_addr_t ip_addr, char *hostname,
@@ -2357,7 +2358,7 @@ extern "C" {
   bool ndpi_cache_address_dump(struct ndpi_detection_module_struct *ndpi_struct, char *path, u_int32_t epoch_now);
   u_int32_t ndpi_cache_address_restore(struct ndpi_detection_module_struct *ndpi_struct, char *path, u_int32_t epoch_now);
   u_int32_t ndpi_cache_address_flush_expired(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t epoch_now);
-  
+
   /* ******************************* */
 
   const char *ndpi_lru_cache_idx_to_name(lru_cache_type idx);

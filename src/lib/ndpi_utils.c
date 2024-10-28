@@ -1272,7 +1272,7 @@ int ndpi_dpi2json(struct ndpi_detection_module_struct *ndpi_struct,
     ndpi_serialize_string_string(serializer, "hostname", host_server_name);
     ndpi_serialize_string_string(serializer, "domainame", ndpi_get_host_domain(ndpi_struct, host_server_name));
   }
-  
+
   switch(l7_protocol.proto.master_protocol ? l7_protocol.proto.master_protocol : l7_protocol.proto.app_protocol) {
   case NDPI_PROTOCOL_IP_ICMP:
     if(flow->entropy > 0.0f) {
@@ -1654,7 +1654,7 @@ int ndpi_flow2json(struct ndpi_detection_module_struct *ndpi_struct,
 
   if(flow->tcp.fingerprint)
     ndpi_serialize_string_string(serializer, "tcp_fingerprint", flow->tcp.fingerprint);
-  
+
   ndpi_serialize_string_string(serializer, "proto",
 			       ndpi_get_ip_proto_name(l4_protocol, l4_proto_name, sizeof(l4_proto_name)));
 
@@ -3494,6 +3494,15 @@ char* ndpi_strrstr(const char *haystack, const char *needle) {
   return (char*) last_occurrence;
 }
 
+/* ************************************************************** */
+
+int ndpi_str_endswith(const char *s, const char *suffix) {
+  size_t slen = strlen(s);
+  size_t suffixlen = strlen(suffix);
+
+  return((slen >= suffixlen) && (!memcmp(&s[slen - suffixlen], suffix, suffixlen)));
+}
+
 /* ******************************************* */
 
 const char *ndpi_lru_cache_idx_to_name(lru_cache_type idx)
@@ -3708,7 +3717,7 @@ u_int ndpi_hex2bin(u_char *out, u_int out_len, u_char* in, u_int in_len) {
 
   if(((in_len+1) / 2) > out_len)
     return(0);
-	   
+
   for(i=0, j=0; i<in_len; i += 2, j++) {
     char buf[3];
 
@@ -3784,7 +3793,7 @@ char* ndpi_quick_encrypt(const char *cleartext_msg,
   ndpi_free(encoded_buf);
 
   *encrypted_msg_len = strlen(encoded);
-  
+
   return(encoded);
 }
 
@@ -3803,7 +3812,7 @@ char* ndpi_quick_decrypt(const char *encrypted_msg,
   struct AES_ctx ctx;
 
   *decrypted_msg_len = 0;
-  
+
   if(decoded_string == NULL) {
     /* Allocation failure */
     return(NULL);
@@ -3839,7 +3848,7 @@ char* ndpi_quick_decrypt(const char *encrypted_msg,
   }
 
   *decrypted_msg_len = content_len;
-    
+
   ndpi_free(content);
 
   return(decoded_string);
@@ -3849,7 +3858,7 @@ char* ndpi_quick_decrypt(const char *encrypted_msg,
 
 const char* ndpi_print_os_hint(u_int8_t os_hint) {
   switch(os_hint) {
-  case os_hint_windows:          return("Windows");     
+  case os_hint_windows:          return("Windows");
   case os_hint_macos:            return("macOS");
   case os_hint_ios_ipad_os:      return("iOS/iPad");
   case os_hint_android:          return("Android");
