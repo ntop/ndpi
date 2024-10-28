@@ -302,6 +302,8 @@ typedef struct ndpi_flow_info {
     ndpi_cipher_weakness client_unsafe_cipher, server_unsafe_cipher;
 
     u_int32_t quic_version;
+
+    struct ndpi_tls_obfuscated_heuristic_matching_set obfuscated_heur_matching_set;
   } ssh_tls;
 
   struct {

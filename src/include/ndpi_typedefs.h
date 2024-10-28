@@ -1260,6 +1260,11 @@ struct os_fingerprint {
   enum operating_system_hint os;
 };
 
+struct ndpi_tls_obfuscated_heuristic_matching_set {
+  u_int32_t bytes[4];
+  u_int32_t pkts[4];
+};
+
 struct ndpi_flow_struct {
   u_int16_t detected_protocol_stack[NDPI_PROTOCOL_SIZE];
 
@@ -1373,6 +1378,7 @@ struct ndpi_flow_struct {
     message_t message[2]; /* Directions */
     u_int8_t certificate_processed:1, change_cipher_from_client:1, change_cipher_from_server:1, from_opportunistic_tls:1, pad:4;
     struct tls_obfuscated_heuristic_state *obfuscated_heur_state;
+    struct ndpi_tls_obfuscated_heuristic_matching_set *obfuscated_heur_matching_set;
   } tls_quic; /* Used also by DTLS and POPS/IMAPS/SMTPS/FTPS */
 
   union {
@@ -1608,8 +1614,8 @@ struct ndpi_flow_struct {
 _Static_assert(sizeof(((struct ndpi_flow_struct *)0)->protos) <= 264,
                "Size of the struct member protocols increased to more than 264 bytes, "
                "please check if this change is necessary.");
-_Static_assert(sizeof(struct ndpi_flow_struct) <= 1192,
-               "Size of the flow struct increased to more than 1192 bytes, "
+_Static_assert(sizeof(struct ndpi_flow_struct) <= 1200,
+               "Size of the flow struct increased to more than 1200 bytes, "
                "please check if this change is necessary.");
 #endif
 #endif
