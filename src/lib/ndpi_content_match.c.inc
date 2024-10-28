@@ -1730,7 +1730,6 @@ static ndpi_tls_cert_name_match tls_certificate_match [] = {
   { "O=Sonos, Inc",                    NDPI_PROTOCOL_SONOS      },  
   { "CN=Snapchat Inc.",                NDPI_PROTOCOL_SNAPCHAT_CALL },
   { "CN=NVIDIA GameStream",            NDPI_PROTOCOL_GEFORCENOW },
-  { "O=PALTALK, INC.",                 NDPI_PROTOCOL_PALTALK },
 
   { NULL, 0 }
 };
