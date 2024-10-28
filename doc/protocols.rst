@@ -992,3 +992,12 @@ References: `Main site: <https://www.sonos.com/>`_
 DingTalk is a versatile communication and collaboration platform developed by Alibaba Group.
 
 References: `Main site: <https://www.dingtalk.com/en>`_
+
+
+.. _Proto 432:
+
+`NDPI_PROTOCOL_PALTALK`
+=========================
+Paltalk is a video chat and instant messaging application that allows users to communicate through video, voice, and text in chat rooms.
+
+References: `Main site: <https://www.paltalk.com/>`_

@@ -1695,6 +1695,9 @@ static ndpi_protocol_match host_match[] =
 
    { "dingtalk.com",                     "DingTalk", NDPI_PROTOCOL_DINGTALK, NDPI_PROTOCOL_CATEGORY_CHAT, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
+   { "paltalk.com",                      "Paltalk", NDPI_PROTOCOL_PALTALK, NDPI_PROTOCOL_CATEGORY_CHAT, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "paltalkconnect.com",               "Paltalk", NDPI_PROTOCOL_PALTALK, NDPI_PROTOCOL_CATEGORY_CHAT, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_content_match_host_match.c.inc"
 #endif
