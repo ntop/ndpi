@@ -69,7 +69,7 @@ ndpi_fds.metadata             = ProtoField.new("nDPI Metadata", "ndpi.metadata",
 local mtd_types = {
    [0] = "Padding",
    [1] = "Server Name",
-   [2] = "JA4C"
+   [2] = "JA4C",
    [3] = "TLS Heuristic Fingerprint",
 }
 ndpi_fds.metadata_type        = ProtoField.new("nDPI Metadata Type", "ndpi.metadata.type", ftypes.UINT16, mtd_types)
