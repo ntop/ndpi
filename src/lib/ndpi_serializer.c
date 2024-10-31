@@ -154,6 +154,7 @@ void ndpi_reset_serializer(ndpi_serializer *_serializer) {
     if (!serializer->multiline_json_array) {
       /* Note: please keep a space at the beginning as it is used for arrays when an end-of-record is used */
       serializer->buffer.data[serializer->status.buffer.size_used++] = ' ';
+      buff_diff = serializer->buffer.size - serializer->status.buffer.size_used;
     }
     if (!serializer->inner_json) {
       serializer->status.buffer.size_used += ndpi_snprintf((char *) &serializer->buffer.data[serializer->status.buffer.size_used], buff_diff, "{}");
