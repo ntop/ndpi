@@ -109,6 +109,7 @@ extern "C" {
   void * ndpi_calloc(unsigned long count, size_t size);
   void * ndpi_realloc(void *ptr, size_t old_size, size_t new_size);
   char * ndpi_strdup(const char *s);
+  char * ndpi_strndup(const char *s, size_t size);
   void   ndpi_free(void *ptr);
   void * ndpi_flow_malloc(size_t size);
   void   ndpi_flow_free(void *ptr);

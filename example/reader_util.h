@@ -308,7 +308,7 @@ typedef struct ndpi_flow_info {
 
   struct {
     char url[256], request_content_type[64], content_type[64],
-      user_agent[256], server[128], nat_ip[32], filename[256];
+      user_agent[256], server[128], nat_ip[32], username[64], password[64], filename[256];
     u_int response_status_code;
   } http;
 

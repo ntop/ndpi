@@ -108,7 +108,7 @@ static void ndpi_analyze_content_signature(struct ndpi_detection_module_struct *
     - ndpi_search_portable_executable
     - ndpi_search_shellscript
   */
-  
+
   if((flow->initial_binary_bytes_len >= 2) && (flow->initial_binary_bytes[0] == 0x4D) && (flow->initial_binary_bytes[1] == 0x5A))
     set_risk = 1, msg = "Found DOS/Windows Exe"; /* Win executable */
   else if((flow->initial_binary_bytes_len >= 4) && (flow->initial_binary_bytes[0] == 0x7F) && (flow->initial_binary_bytes[1] == 'E')
@@ -224,12 +224,11 @@ static void ndpi_validate_http_content(struct ndpi_detection_module_struct *ndpi
 
     len = packet->payload_packet_len - (double_ret - packet->payload);
 
-    if(ndpi_strnstr((const char *)packet->content_line.ptr, "text/", packet->content_line.len)
+    if(flow->http.is_form
+       || ndpi_strnstr((const char *)packet->content_line.ptr, "text/", packet->content_line.len)
        || ndpi_strnstr((const char *)packet->content_line.ptr, "/json", packet->content_line.len)
-       || ndpi_strnstr((const char *)packet->content_line.ptr, "x-www-form-urlencoded", packet->content_line.len)
        ) {
       /* This is supposed to be a human-readeable text file */
-
       packet->http_check_content = 1;
 
       if(len >= 8 /* 4 chars for \r\n\r\n and at least 4 charts for content guess */) {
@@ -462,6 +461,7 @@ static void setHttpUserAgent(struct ndpi_flow_struct *flow, char *ua) {
   else if(!strcmp(ua, "Windows NT 6.2"))  ua = "Windows 8";
   else if(!strcmp(ua, "Windows NT 6.3"))  ua = "Windows 8.1";
   else if(!strcmp(ua, "Windows NT 10.0")) ua = "Windows 10";
+  else if(!strcmp(ua, "Windows NT 11.0")) ua = "Windows 11";
 
   /* Good reference for future implementations:
    * https://github.com/ua-parser/uap-core/blob/master/regexes.yaml */
@@ -640,6 +640,42 @@ static void ndpi_http_parse_subprotocol(struct ndpi_detection_module_struct *ndp
   if ((flow->detected_protocol_stack[1] == NDPI_PROTOCOL_UNKNOWN) &&
       flow->http.user_agent && strstr(flow->http.user_agent, "Valve/Steam HTTP Client")) {
     ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_STEAM, master_protocol, NDPI_CONFIDENCE_DPI);
+  }
+
+
+  if(flow->http.request_header_observed) {
+    if(flow->http.first_payload_after_header_observed == 0) {
+      /* Skip the last part of the HTTP request */
+      flow->http.first_payload_after_header_observed = 1;
+    } else if(flow->http.is_form && (packet->payload_packet_len > 0)) {
+      /* Response payload */
+      char *dup = ndpi_strndup((const char *)packet->payload, packet->payload_packet_len);
+
+      if(dup) {
+	char *key, *value, *tmp;
+
+	key = strtok_r(dup, "=", &tmp);
+
+	while((key != NULL)
+	      && ((flow->http.username == NULL) || (flow->http.password == NULL))) {
+	  value = strtok_r(NULL, "&", &tmp);
+
+	  if(!value)
+	    break;
+
+	  if((strcmp(key, "user") == 0) || (strcmp(key, "username") == 0)) {
+	    if(!flow->http.username) flow->http.username = ndpi_strdup(value);
+	  } else if((strcmp(key, "pwd") == 0) || (strcmp(key, "password") == 0)) {
+	    if(!flow->http.password) flow->http.password = ndpi_strdup(value);
+	    ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS, "Found password");
+	  }
+
+	  key = strtok_r(NULL, "=", &tmp);
+	}
+
+	ndpi_free(dup);
+      }
+    }
   }
 }
 
@@ -986,13 +1022,32 @@ static void check_content_type_and_change_protocol(struct ndpi_detection_module_
   }
 
   if(packet->authorization_line.ptr != NULL) {
+    const char *a = NULL, *b = NULL;
+    
     NDPI_LOG_DBG2(ndpi_struct, "Authorization line found %.*s\n",
 		  packet->authorization_line.len, packet->authorization_line.ptr);
 
-    if(ndpi_strncasestr((const char*)packet->authorization_line.ptr,
-			"Basic", packet->authorization_line.len)
-       || ndpi_strncasestr((const char*)packet->authorization_line.ptr,
-			   "Digest", packet->authorization_line.len)) {
+    if((a = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
+			     "Basic", packet->authorization_line.len))
+       || (b = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
+				"Digest", packet->authorization_line.len))) {
+      size_t content_len;
+      u_int len = b ? 7 : 6;
+      u_char *content = ndpi_base64_decode((const u_char*)&packet->authorization_line.ptr[len],
+					   packet->authorization_line.len - len, &content_len);
+
+      if(content != NULL) {
+	char *double_dot = strchr((char*)content, ':');
+
+	if(double_dot) {
+	  double_dot[0] = '\0';
+	  flow->http.username = ndpi_strdup((char*)content);
+	  flow->http.password = ndpi_strdup(&double_dot[1]);
+	}
+	
+	ndpi_free(content);
+      }
+
       ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS,
 		    "Found credentials in HTTP Auth Line");
     }
@@ -1013,6 +1068,9 @@ static void check_content_type_and_change_protocol(struct ndpi_detection_module_
 		  packet->content_line.len);
 	  flow->http.request_content_type[packet->content_line.len] = '\0';
 	}
+
+	if(ndpi_strnstr(flow->http.request_content_type, "x-www-form-urlencoded", packet->content_line.len))
+	   flow->http.is_form = 1;
       }
     } else {
       /* Response */

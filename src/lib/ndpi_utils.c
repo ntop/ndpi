@@ -3885,3 +3885,16 @@ const char* ndpi_print_os_hint(u_int8_t os_hint) {
 
   return("Unknown");
 }
+
+/* ************************************************************** */
+
+char* ndpi_strndup(const char *s, size_t size) {
+  char *ret = (char*)ndpi_malloc(size+1);
+
+  if(ret == NULL) return(NULL);
+
+  memcpy(ret, s, size);
+  ret[size] = '\0';
+
+  return(ret);
+}

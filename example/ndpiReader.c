@@ -94,6 +94,10 @@ static char* ip_port_to_check = NULL;
 static u_int8_t ignore_vlanid = 0;
 FILE *fingerprint_fp         = NULL; /**< for flow fingerprint export */
 
+#ifdef CUSTOM_NDPI_PROTOCOLS
+#include "../../nDPI-custom/ndpiReader_defs.c"
+#endif
+
 /** User preferences **/
 char *addr_dump_path = NULL;
 u_int8_t enable_realtime_output = 0, enable_protocol_guess = NDPI_GIVEUP_GUESS_BY_PORT | NDPI_GIVEUP_GUESS_BY_IP, enable_payload_analyzer = 0, num_bin_clusters = 0, extcap_exit = 0;
@@ -815,6 +819,8 @@ static struct option longopts[] = {
   {0, 0, 0, 0}
 };
 
+static const char* longopts_short = "a:Ab:B:e:E:c:C:dDFf:g:G:i:Ij:k:K:S:hHp:pP:l:L:r:Rs:tu:v:V:n:rp:x:X:w:q0123:456:7:89:m:MN:T:U:";
+
 /* ********************************** */
 
 void extcap_interfaces() {
@@ -1102,9 +1108,7 @@ static void parseOptions(int argc, char **argv) {
   }
 #endif
 
-  while((opt = getopt_long(argc, argv,
-			   "a:Ab:B:e:E:c:C:dDFf:g:G:i:Ij:k:K:S:hHp:pP:l:L:r:Rs:tu:v:V:n:rp:x:X:w:q0123:456:7:89:m:MN:T:U:",
-                           longopts, &option_idx)) != EOF) {
+  while((opt = getopt_long(argc, argv, longopts_short, longopts, &option_idx)) != EOF) {
 #ifdef DEBUG_TRACE
     if(trace) fprintf(trace, " #### Handling option -%c [%s] #### \n", opt, optarg ? optarg : "");
 #endif
@@ -1886,6 +1890,9 @@ static void printFlow(u_int32_t id, struct ndpi_flow_info *flow, u_int16_t threa
     if(flow->telnet.username)  fprintf(out, "[Username: %s]", flow->telnet.username);
     if(flow->telnet.password)  fprintf(out, "[Password: %s]", flow->telnet.password);
 
+    if(flow->http.username[0])  fprintf(out, "[Username: %s]", flow->http.username);
+    if(flow->http.password[0])  fprintf(out, "[Password: %s]", flow->http.password);
+
     if(flow->host_server_name[0] != '\0') fprintf(out, "[Hostname/SNI: %s]", flow->host_server_name);
 
     switch (flow->info_type)
@@ -2292,6 +2299,10 @@ static void printFlowSerialized(struct ndpi_flow_info *flow)
     }
 
   fprintf(serialization_fp, "%.*s\n", (int)json_str_len, json_str);
+
+#ifdef CUSTOM_NDPI_PROTOCOLS
+#include "../../nDPI-custom/ndpiReader_flow_serialize.c"
+#endif
 }
 
 /* ********************************** */
@@ -3901,10 +3912,8 @@ static void printFlowsStats() {
 	}
       }
 
-      for(i=0; i<num_flows; i++)
-	{
-	  printFlowSerialized(all_flows[i].flow);
-	}
+      for(i=0; i<num_flows; i++)	
+	printFlowSerialized(all_flows[i].flow);	
     }
 
   ndpi_free(all_flows);
@@ -6601,12 +6610,14 @@ int main(int argc, char **argv) {
 
   if(getenv("AHO_DEBUG"))
     ac_automata_enable_debug(1);
+
   parseOptions(argc, argv);
 
   if(domain_to_check) {
     ndpiCheckHostStringMatch(domain_to_check);
     exit(0);
   }
+  
   if(ip_port_to_check) {
     ndpiCheckIPMatch(ip_port_to_check);
     exit(0);
@@ -6620,6 +6631,10 @@ int main(int argc, char **argv) {
       num_bin_clusters = 1;
   }
 
+#ifdef CUSTOM_NDPI_PROTOCOLS
+#include "../../nDPI-custom/ndpiReader_init.c"
+#endif
+  
   if(!quiet_mode) {
     printf("\n-----------------------------------------------------------\n"
 	   "* NOTE: This is demo app to show *some* nDPI features.\n"
@@ -6655,6 +6670,10 @@ int main(int argc, char **argv) {
     ndpi_free(cfgs[i].param);
     ndpi_free(cfgs[i].value);
   }
+
+#ifdef CUSTOM_NDPI_PROTOCOLS
+#include "../../nDPI-custom/ndpiReader_term.c"
+#endif
 
 #ifdef DEBUG_TRACE
   if(trace) fclose(trace);
