@@ -1653,7 +1653,8 @@ typedef enum {
   ndpi_serialization_format_tlv,
   ndpi_serialization_format_json,
   ndpi_serialization_format_csv,
-  ndpi_serialization_format_multiline_json
+  ndpi_serialization_format_multiline_json, /* new-line separated records */
+  ndpi_serialization_format_inner_json /* no outer braces */
 } ndpi_serialization_format;
 
 /* Note:
@@ -1719,6 +1720,7 @@ typedef struct {
   char csv_separator[2];
   u_int8_t has_snapshot;
   u_int8_t multiline_json_array;
+  u_int8_t inner_json;
   ndpi_private_serializer_status snapshot;
 } ndpi_private_serializer;
 
