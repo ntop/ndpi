@@ -1001,3 +1001,12 @@ References: `Main site: <https://www.dingtalk.com/en>`_
 Paltalk is a video chat and instant messaging application that allows users to communicate through video, voice, and text in chat rooms.
 
 References: `Main site: <https://www.paltalk.com/>`_
+
+
+.. _Proto 433:
+
+`NDPI_PROTOCOL_NAVER`
+=========================
+Naver is South Korea's largest search engine and online platform that offers various services including web search, email, news, shopping, cloud storage, maps, and social media features.
+
+References: `Main site: <https://www.naver.com/>`_
