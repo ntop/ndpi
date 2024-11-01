@@ -929,11 +929,12 @@ static const unsigned char base64_table[65] =
  * base64_decode - Base64 decode
  * @src: Data to be decoded
  * @len: Length of the data to be decoded
- * @out_len: Pointer to output length variable
+ * @out_len: Pointer to output length variable (NULL character at the end is ignored)
  * Returns: Allocated buffer of out_len bytes of decoded data,
  * or %NULL on failure
  *
  * Caller is responsible for freeing the returned buffer.
+ * The returned buffer is always NULL terminated
  */
 u_char* ndpi_base64_decode(const u_char *src, size_t len, size_t *out_len) {
   u_char dtable[256], *out, *pos, block[4], tmp;
@@ -954,8 +955,8 @@ u_char* ndpi_base64_decode(const u_char *src, size_t len, size_t *out_len) {
   if(count == 0 || count % 4)
     return NULL;
 
-  olen = count / 4 * 3;
-  pos = out = ndpi_malloc(olen);
+  olen = count / 4 * 3 + 1; /* out is always NULL terminated */
+  pos = out = ndpi_calloc(1, olen);
   if(out == NULL)
     return NULL;
 
