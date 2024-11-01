@@ -68,6 +68,7 @@
 /fuzz/fuzz_alg_shoco
 /fuzz/fuzz_alg_memmem
 /fuzz/fuzz_alg_strnstr
+/fuzz/fuzz_alg_quick_encryption
 /fuzz/fuzz_config
 /fuzz/fuzz_community_id
 /fuzz/fuzz_serialization

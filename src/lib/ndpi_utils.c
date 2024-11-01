@@ -3810,7 +3810,8 @@ char* ndpi_quick_encrypt(const char *cleartext_msg,
   encoded = ndpi_base64_encode((const unsigned char *)encoded_buf, encoded_len);
   ndpi_free(encoded_buf);
 
-  *encrypted_msg_len = strlen(encoded);
+  if(encoded)
+    *encrypted_msg_len = strlen(encoded);
 
   return(encoded);
 }
@@ -3842,13 +3843,15 @@ char* ndpi_quick_decrypt(const char *encrypted_msg,
 
   if((content == NULL) || (content_len == 0)) {
     /* Base64 decoding error */
+    ndpi_free(decoded_string);
     ndpi_free(content);
     return(NULL);
   }
 
   if(allocated_decoded_string < (content_len+1)) {
     /* Buffer size failure */
-    free(content);
+    ndpi_free(decoded_string);
+    ndpi_free(content);
     return(NULL);
   }
 
