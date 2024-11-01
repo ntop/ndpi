@@ -1027,29 +1027,31 @@ static void check_content_type_and_change_protocol(struct ndpi_detection_module_
     NDPI_LOG_DBG2(ndpi_struct, "Authorization line found %.*s\n",
 		  packet->authorization_line.len, packet->authorization_line.ptr);
 
-    if((a = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
-			     "Basic", packet->authorization_line.len))
-       || (b = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
-				"Digest", packet->authorization_line.len))) {
-      size_t content_len;
-      u_int len = b ? 7 : 6;
-      u_char *content = ndpi_base64_decode((const u_char*)&packet->authorization_line.ptr[len],
-					   packet->authorization_line.len - len, &content_len);
+    if(flow->http.username == NULL && flow->http.password == NULL) {
+      if((a = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
+                               "Basic", packet->authorization_line.len))
+         || (b = ndpi_strncasestr((const char*)packet->authorization_line.ptr,
+                                  "Digest", packet->authorization_line.len))) {
+        size_t content_len;
+        u_int len = b ? 7 : 6;
+        u_char *content = ndpi_base64_decode((const u_char*)&packet->authorization_line.ptr[len],
+                                             packet->authorization_line.len - len, &content_len);
 
-      if(content != NULL) {
-	char *double_dot = strchr((char*)content, ':');
+        if(content != NULL) {
+          char *double_dot = strchr((char*)content, ':');
 
-	if(double_dot) {
-	  double_dot[0] = '\0';
-	  flow->http.username = ndpi_strdup((char*)content);
-	  flow->http.password = ndpi_strdup(&double_dot[1]);
-	}
-	
-	ndpi_free(content);
+          if(double_dot) {
+            double_dot[0] = '\0';
+            flow->http.username = ndpi_strdup((char*)content);
+            flow->http.password = ndpi_strdup(&double_dot[1]);
+          }
+
+          ndpi_free(content);
+        }
+
+        ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS,
+                      "Found credentials in HTTP Auth Line");
       }
-
-      ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS,
-		    "Found credentials in HTTP Auth Line");
     }
   }
 
