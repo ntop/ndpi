@@ -4465,9 +4465,10 @@ static int getNextPcapFileFromPlaylist(u_int16_t thread_id, char filename[], u_i
  * @brief Configure the pcap handle
  */
 static void configurePcapHandle(pcap_t * pcap_handle) {
-
+  if(!pcap_handle)
+    return;
+  
   if(bpfFilter != NULL) {
-
     if(!bpf_cfilter) {
       if(pcap_compile(pcap_handle, &bpf_code, bpfFilter, 1, 0xFFFFFF00) < 0) {
 	printf("pcap_compile error: '%s'\n", pcap_geterr(pcap_handle));
@@ -4475,6 +4476,7 @@ static void configurePcapHandle(pcap_t * pcap_handle) {
       }
       bpf_cfilter = &bpf_code;
     }
+    
     if(pcap_setfilter(pcap_handle, bpf_cfilter) < 0) {
       printf("pcap_setfilter error: '%s'\n", pcap_geterr(pcap_handle));
     } else {
