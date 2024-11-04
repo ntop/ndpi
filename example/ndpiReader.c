@@ -292,7 +292,9 @@ static int dpdk_port_id = 0, dpdk_run_capture = 1;
 void test_lib(); /* Forward */
 
 extern void ndpi_report_payload_stats(FILE *out);
-extern int parse_proto_name_list(char *str, NDPI_PROTOCOL_BITMASK *bitmask, int inverted_logic);
+extern int parse_proto_name_list(char *str, NDPI_PROTOCOL_BITMASK *bitmask,
+				 int inverted_logic);
+extern u_int8_t is_ndpi_proto(struct ndpi_flow_info *flow, u_int16_t id);
 
 /* ********************************** */
 

@@ -1072,7 +1072,7 @@ static struct ndpi_flow_info *get_ndpi_flow_info6(struct ndpi_workflow * workflo
 
 /* ****************************************************** */
 
-static u_int8_t is_ndpi_proto(struct ndpi_flow_info *flow, u_int16_t id) {
+u_int8_t is_ndpi_proto(struct ndpi_flow_info *flow, u_int16_t id) {
   if((flow->detected_protocol.proto.master_protocol == id)
      || (flow->detected_protocol.proto.app_protocol == id))
     return(1);
