@@ -50,7 +50,7 @@
 
 #endif
 
-void ndpi_debug_printf(unsigned int proto, struct ndpi_detection_module_struct *ndpi_str, ndpi_log_level_t log_level,
+void ndpi_debug_printf(u_int16_t proto, struct ndpi_detection_module_struct *ndpi_str, ndpi_log_level_t log_level,
                        const char *file_name, const char *func_name, int line_number, const char *format, ...);
 
 #endif
