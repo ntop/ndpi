@@ -36,17 +36,106 @@ static void ndpi_int_sip_add_connection(struct ndpi_detection_module_struct *ndp
 
 /* ********************************************************** */
 
-#if !defined(WIN32)
-static inline
-#elif defined(MINGW_GCC)
-__mingw_forceinline static
-#else
-__forceinline static
-#endif
+static int search_cmd(struct ndpi_detection_module_struct *ndpi_struct)
+{
+  struct ndpi_packet_struct *packet = &ndpi_struct->packet;
+  const u_int8_t *packet_payload = packet->payload;
+  u_int32_t payload_len = packet->payload_packet_len;
+  const char **cs;
+  size_t length;
+  const char *cmds_a[] = { "Ack sip",
+                           "Ack tel",
+                           NULL };
+  const char *cmds_b[] = { "Bye sip",
+                           NULL};
+  const char *cmds_c[] = { "Cancel sip",
+                           "Cancel tel",
+                           NULL};
+  const char *cmds_i[] = { "Invite sip",
+                           "Info sip",
+                           NULL};
+  const char *cmds_m[] = { "Message sip",
+                           NULL};
+  const char *cmds_n[] = { "Notify sip",
+                           NULL};
+  const char *cmds_o[] = { "Options sip",
+                           "Options tel",
+                           NULL};
+  const char *cmds_p[] = { "Publish sip",
+                           "Prack sip",
+                           NULL};
+  const char *cmds_r[] = { "Register sip",
+                           "Refer sip",
+                           NULL};
+  const char *cmds_s[] = { "Subscribe sip",
+                           "SIP/2.0", /* Reply; useful with asymmetric flows */
+                           NULL};
+
+  switch(packet_payload[0]) {
+  case 'a':
+  case 'A':
+    cs = cmds_a;
+    break;
+  case 'b':
+  case 'B':
+    cs = cmds_b;
+    break;
+  case 'c':
+  case 'C':
+    cs = cmds_c;
+    break;
+  case 'i':
+  case 'I':
+    cs = cmds_i;
+    break;
+  case 'm':
+  case 'M':
+    cs = cmds_m;
+    break;
+  case 'n':
+  case 'N':
+    cs = cmds_n;
+    break;
+  case 'o':
+  case 'O':
+    cs = cmds_o;
+    break;
+  case 'p':
+  case 'P':
+    cs = cmds_p;
+    break;
+  case 'r':
+  case 'R':
+    cs = cmds_r;
+    break;
+  case 's':
+  case 'S':
+    cs = cmds_s;
+    break;
+  default:
+    return 0;
+  }
+
+  while(*cs) {
+    length = strlen(*cs);
+    if(payload_len > length &&
+       strncasecmp((const char *)packet_payload, *cs, length) == 0) {
+      NDPI_LOG_DBG(ndpi_struct, "Matching with [%s]\n", *cs);
+      return 1;
+    }
+    cs++;
+  }
+  return 0;
+}
+
+
+
 void ndpi_search_sip(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow) {
   struct ndpi_packet_struct *packet = &ndpi_struct->packet;
   const u_int8_t *packet_payload = packet->payload;
   u_int32_t payload_len = packet->payload_packet_len;
+
+  NDPI_LOG_DBG(ndpi_struct, "Searching for SIP\n");
 
   if(flow->packet_counter >= 8) {
     NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
@@ -75,135 +164,12 @@ void ndpi_search_sip(struct ndpi_detection_module_struct *ndpi_struct, struct nd
     return;
   }
 
-  if(payload_len >= 14) {    
-    if((memcmp(packet_payload, "NOTIFY ", 7) == 0 || memcmp(packet_payload, "notify ", 7) == 0)
-       && (memcmp(&packet_payload[7], "SIP:", 4) == 0 || memcmp(&packet_payload[7], "sip:", 4) == 0)) {
-
-      NDPI_LOG_INFO(ndpi_struct, "found sip NOTIFY\n");
+  if(payload_len >= 30) { /* Arbitrary value: SIP packets are quite big */
+    if(search_cmd(ndpi_struct) == 1) {
+      NDPI_LOG_INFO(ndpi_struct, "found sip command\n");
       ndpi_int_sip_add_connection(ndpi_struct, flow);
       return;
     }
-
-    if((memcmp(packet_payload, "REGISTER ", 9) == 0 || memcmp(packet_payload, "register ", 9) == 0)
-       && (memcmp(&packet_payload[9], "SIP:", 4) == 0 || memcmp(&packet_payload[9], "sip:", 4) == 0)) {
-
-      NDPI_LOG_INFO(ndpi_struct, "found sip REGISTER\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "INVITE ", 7) == 0 || memcmp(packet_payload, "invite ", 7) == 0)
-       && (memcmp(&packet_payload[7], "SIP:", 4) == 0 || memcmp(&packet_payload[7], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip INVITE\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    /* seen this in second direction on the third position,
-     * maybe it could be deleted, if somebody sees it in the first direction,
-     * please delete this comment.
-     */
-
-    /*
-      if(memcmp(packet_payload, "SIP/2.0 200 OK", 14) == 0 || memcmp(packet_payload, "sip/2.0 200 OK", 14) == 0) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip SIP/2.0 0K\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-      }
-    */
-    if(memcmp(packet_payload, "SIP/2.0 ", 8) == 0 || memcmp(packet_payload, "sip/2.0 ", 8) == 0) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip SIP/2.0 *\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "BYE ", 4) == 0 || memcmp(packet_payload, "bye ", 4) == 0)
-       && (memcmp(&packet_payload[4], "SIP:", 4) == 0 || memcmp(&packet_payload[4], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip BYE\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "ACK ", 4) == 0 || memcmp(packet_payload, "ack ", 4) == 0)
-       && ((memcmp(&packet_payload[4], "SIP:", 4) == 0 || memcmp(&packet_payload[4], "sip:", 4) == 0) ||
-           (memcmp(&packet_payload[4], "TEL:", 4) == 0 || memcmp(&packet_payload[4], "tel:", 4) == 0))) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip ACK\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "CANCEL ", 7) == 0 || memcmp(packet_payload, "cancel ", 7) == 0)
-       && ((memcmp(&packet_payload[7], "SIP:", 4) == 0 || memcmp(&packet_payload[7], "sip:", 4) == 0) ||
-           (memcmp(&packet_payload[7], "TEL:", 4) == 0 || memcmp(&packet_payload[7], "tel:", 4) == 0))) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip CANCEL\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "PUBLISH ", 8) == 0 || memcmp(packet_payload, "publish ", 8) == 0)
-       && (memcmp(&packet_payload[8], "SIP:", 4) == 0 || memcmp(&packet_payload[8], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip PUBLISH\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "SUBSCRIBE ", 10) == 0 || memcmp(packet_payload, "subscribe ", 10) == 0)
-       && (memcmp(&packet_payload[10], "SIP:", 4) == 0 || memcmp(&packet_payload[10], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip SUBSCRIBE\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-        
-    /* SIP message extension RFC 3248 */
-    if((memcmp(packet_payload, "MESSAGE ", 8) == 0 || memcmp(packet_payload, "message ", 8) == 0)
-       && (memcmp(&packet_payload[8], "SIP:", 4) == 0 || memcmp(&packet_payload[8], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip MESSAGE\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    /* Courtesy of Miguel Quesada <mquesadab@gmail.com> */
-    if((memcmp(packet_payload, "OPTIONS ", 8) == 0
-	|| memcmp(packet_payload, "options ", 8) == 0)
-       && ((memcmp(&packet_payload[8], "SIP:", 4) == 0 || memcmp(&packet_payload[8], "sip:", 4) == 0) ||
-           (memcmp(&packet_payload[8], "TEL:", 4) == 0 || memcmp(&packet_payload[8], "tel:", 4) == 0))) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip OPTIONS\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "REFER ", 6) == 0 || memcmp(packet_payload, "refer ", 6) == 0)
-       && (memcmp(&packet_payload[6], "SIP:", 4) == 0 || memcmp(&packet_payload[6], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip REFER\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "PRACK ", 6) == 0 || memcmp(packet_payload, "prack ", 6) == 0)
-       && (memcmp(&packet_payload[6], "SIP:", 4) == 0 || memcmp(&packet_payload[6], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip PRACK\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-
-    if((memcmp(packet_payload, "INFO ", 5) == 0 || memcmp(packet_payload, "info ", 5) == 0)
-       && (memcmp(&packet_payload[5], "SIP:", 4) == 0 || memcmp(&packet_payload[5], "sip:", 4) == 0)) {
-      NDPI_LOG_INFO(ndpi_struct, "found sip INFO\n");
-      ndpi_int_sip_add_connection(ndpi_struct, flow);
-      return;
-    }
-  }
-
-  /* add bitmask for tcp only, some stupid udp programs
-   * send a very few (< 10 ) packets before invite (mostly a 0x0a0x0d, but just search the first 3 payload_packets here */
-  if(packet->udp != NULL) {
-    NDPI_LOG_DBG2(ndpi_struct, "need next packet\n");
-    return;
-  }
-
-  if(payload_len == 4 && get_u_int32_t(packet_payload, 0) == 0) {
-    NDPI_LOG_DBG2(ndpi_struct, "maybe sip. need next packet\n");    
-    return;
   }
 }
 
