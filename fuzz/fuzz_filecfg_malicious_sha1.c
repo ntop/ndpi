@@ -3,7 +3,7 @@
 #include "fuzz_common_code.h"
 
 #ifdef NDPI_ENABLE_DEBUG_MESSAGES
-void ndpi_debug_printf(unsigned int proto, struct ndpi_detection_module_struct *ndpi_str, ndpi_log_level_t log_level,
+void ndpi_debug_printf(uint16_t proto, struct ndpi_detection_module_struct *ndpi_str, ndpi_log_level_t log_level,
                        const char *file_name, const char *func_name, unsigned int line_number, const char *format, ...);
 #endif
 

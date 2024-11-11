@@ -40,7 +40,7 @@ void help() {
 
 static int verbose_dga_detection = 0;
 
-static void ndpi_dbg_fn(u_int32_t protocol,
+static void ndpi_dbg_fn(u_int16_t protocol,
                         struct ndpi_detection_module_struct *module_struct,
                         ndpi_log_level_t log_level, const char *file,
                         const char *func, unsigned line,
