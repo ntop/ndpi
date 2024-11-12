@@ -462,6 +462,9 @@ typedef enum {
   NDPI_PROTOCOL_DINGTALK              = 431,
   NDPI_PROTOCOL_PALTALK               = 432,
   NDPI_PROTOCOL_NAVER                 = 433,
+  NDPI_PROTOCOL_SHEIN                 = 434,
+  NDPI_PROTOCOL_TEMU                  = 435,
+  NDPI_PROTOCOL_TAOBAO                = 436,
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_protocol_ids.h"

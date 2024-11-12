@@ -1010,3 +1010,30 @@ References: `Main site: <https://www.paltalk.com/>`_
 Naver is South Korea's largest search engine and online platform that offers various services including web search, email, news, shopping, cloud storage, maps, and social media features.
 
 References: `Main site: <https://www.naver.com/>`_
+
+
+.. _Proto 434:
+
+`NDPI_PROTOCOL_SHEIN`
+=====================
+Shein is a fast fashion retailer.
+
+References: `Main site <https://www.shein.com/>`_
+
+
+.. _Proto 435:
+
+`NDPI_PROTOCOL_TEMU`
+====================
+Temu is an online marketplace operated by the Chinese e-commerce company PDD Holdings.
+
+References: `Main site <https://www.temu.com/>`_
+
+
+.. _Proto 436:
+
+`NDPI_PROTOCOL_TAOBAO`
+======================
+Taobao is a Chinese online shopping platform.
+
+References: `Main site <https://www.taobao.com/>`_
