@@ -3902,3 +3902,25 @@ char* ndpi_strndup(const char *s, size_t size) {
 
   return(ret);
 }
+
+/* ************************************************************** */
+
+char *ndpi_strip_leading_trailing_spaces(char *ptr, int *ptr_len) {
+
+  /* Stripping leading spaces */
+  while(*ptr_len > 0 && ptr[0] == ' ') {
+    (*ptr_len)--;
+    ptr++;
+  }
+  if(*ptr_len == 0)
+    return NULL;
+
+  /* Stripping trailing spaces */
+  while(*ptr_len > 0 && ptr[*ptr_len - 1] == ' ') {
+    (*ptr_len)--;
+  }
+  if(*ptr_len == 0)
+    return NULL;
+
+  return ptr;
+}

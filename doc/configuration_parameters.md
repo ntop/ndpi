@@ -42,6 +42,10 @@ TODO
 | "imap"       | "tls_dissection"                          | enable        | NULL      | NULL      | Enable/disable dissection of TLS packets in cleartext IMAP flows (because of opportunistic TLS, via STARTTLS msg) |
 | "pop"        | "tls_dissection"                          | enable        | NULL      | NULL      | Enable/disable dissection of TLS packets in cleartext POP flows (because of opportunistic TLS, via STARTTLS msg) |
 | "ftp"        | "tls_dissection"                          | enable        | NULL      | NULL      | Enable/disable dissection of TLS packets in cleartext FTP flows (because of opportunistic TLS, via AUTH TLS msg) |
+| "sip"        | "metadata.attribute.from"                 | enable        | NULL      | NULL      | Enable/disable extraction of "From" header from SIP flows |
+| "sip"        | "metadata.attribute.from_imsi"            | enable        | NULL      | NULL      | In a SIP flow, if the "From" header contains a valid IMSI, this option enable/disable the extraction of the IMSI itself |
+| "sip"        | "metadata.attribute.to"                   | enable        | NULL      | NULL      | Enable/disable extraction of "To" header from SIP flows |
+| "sip"        | "metadata.attribute.to_imsi"              | enable        | NULL      | NULL      | In a SIP flow, if the "To" header contains a valid IMSI, this option enable/disable the extraction of the IMSI itself |
 | "stun"       | "max_packets_extra_dissection"            | 4             | 0         | 255       | After a flow has been classified has STUN, nDPI might analyse more packets to look for a sub-classification or for metadata. This parameter set the upper limit on the number of these packets  |
 | "stun"       | "tls_dissection"                          | enable        | NULL      | NULL      | Enable/disable dissection of TLS packets multiplexed into STUN flows |
 | "stun"       | "metadata.attribute.mapped_address"       | enable        | NULL      | NULL      | Enable/disable extraction of (xor)-mapped-address attribute for STUN flows. If it is disabled, STUN classification might be significant faster |

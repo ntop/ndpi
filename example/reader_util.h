@@ -170,6 +170,7 @@ enum info_type {
     INFO_TIVOCONNECT,
     INFO_FTP_IMAP_POP_SMTP,
     INFO_NATPMP,
+    INFO_SIP,
 };
 
 typedef struct {
@@ -262,6 +263,13 @@ typedef struct ndpi_flow_info {
       uint16_t external_port;
       char ip[16];
     } natpmp;
+
+    struct {
+      char from[256];
+      char from_imsi[16];
+      char to[256];
+      char to_imsi[16];
+    } sip;
   };
 
   ndpi_serializer ndpi_flow_serializer;

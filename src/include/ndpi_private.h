@@ -257,6 +257,11 @@ struct ndpi_detection_module_config_struct {
 
   int ftp_opportunistic_tls_enabled;
 
+  int sip_attribute_from_enabled;
+  int sip_attribute_from_imsi_enabled;
+  int sip_attribute_to_enabled;
+  int sip_attribute_to_imsi_enabled;
+
   int stun_opportunistic_tls_enabled;
   int stun_max_packets_extra_dissection;
   int stun_mapped_address_enabled;
