@@ -42,6 +42,10 @@ clean-coverage:
 	find . -type f -name "*.gcda" -exec rm "{}" +
 	find . -type f -name "*.gcno" -exec rm "{}" +
 
+pull:
+	git pull --rebase
+	if test -d ../nDPI-custom; then echo "Pulling ../nDPI-custom"; cd ../nDPI-custom; git pull --rebase; cd ../nDPI; fi
+
 changelog:
 	git log --since={`curl -s https://github.com/ntop/ndpi/releases | grep datetime | head -n1 | egrep -o "[0-9]+\-[0-9]+\-[0-9]+"`} --name-only --pretty=format:" - %s" | grep  "^ " > CHANGELOG.latest
 
