@@ -115,6 +115,8 @@ extern "C" {
   void   ndpi_flow_free(void *ptr);
   u_int32_t ndpi_get_tot_allocated_memory(void);
 
+  char *ndpi_strip_leading_trailing_spaces(char *ptr, int *ptr_len) ;
+
   /**
    * Finds the first occurrence of the substring 'needle' in the string 'haystack'.
    *

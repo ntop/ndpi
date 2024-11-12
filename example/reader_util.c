@@ -1487,6 +1487,18 @@ void process_ndpi_collected_info(struct ndpi_workflow * workflow, struct ndpi_fl
       ndpi_snprintf(flow->info, sizeof(flow->info), "Username: %s",
                     flow->ndpi_flow->protos.collectd.client_username);
   }
+  /* SIP */
+  else if(is_ndpi_proto(flow, NDPI_PROTOCOL_SIP)) {
+    flow->info_type = INFO_SIP;
+    if(flow->ndpi_flow->protos.sip.from)
+      ndpi_snprintf(flow->sip.from, sizeof(flow->sip.from), "%s", flow->ndpi_flow->protos.sip.from);
+    if(flow->ndpi_flow->protos.sip.from_imsi[0] != '\0')
+      ndpi_snprintf(flow->sip.from_imsi, sizeof(flow->sip.from_imsi), "%s", flow->ndpi_flow->protos.sip.from_imsi);
+    if(flow->ndpi_flow->protos.sip.to)
+      ndpi_snprintf(flow->sip.to, sizeof(flow->sip.to), "%s", flow->ndpi_flow->protos.sip.to);
+    if(flow->ndpi_flow->protos.sip.to_imsi[0] != '\0')
+      ndpi_snprintf(flow->sip.to_imsi, sizeof(flow->sip.to_imsi), "%s", flow->ndpi_flow->protos.sip.to_imsi);
+  }
   /* TELNET */
   else if(is_ndpi_proto(flow, NDPI_PROTOCOL_TELNET)) {
     if(flow->ndpi_flow->protos.telnet.username[0] != '\0')

@@ -1961,6 +1961,25 @@ static void printFlow(u_int32_t id, struct ndpi_flow_info *flow, u_int16_t threa
 	  }
         break;
 
+      case INFO_SIP:
+        if (flow->sip.from[0] != '\0')
+          {
+            fprintf(out, "[SIP From: %s]", flow->sip.from);
+          }
+        if (flow->sip.from_imsi[0] != '\0')
+          {
+            fprintf(out, "[SIP From IMSI: %s]", flow->sip.from_imsi);
+          }
+        if (flow->sip.to[0] != '\0')
+          {
+            fprintf(out, "[SIP To: %s]", flow->sip.to);
+          }
+        if (flow->sip.to_imsi[0] != '\0')
+          {
+            fprintf(out, "[SIP To IMSI: %s]", flow->sip.to_imsi);
+          }
+        break;
+
       case INFO_NATPMP:
         if (flow->natpmp.internal_port != 0 && flow->natpmp.ip[0] != '\0')
 	  {

@@ -1525,6 +1525,13 @@ struct ndpi_flow_struct {
       u_int8_t url_count;
       char url[4][48];
     } slp;
+
+    struct {
+      char *from;
+      char from_imsi[16]; /* IMSI is 15 digit long, at most; + 1 for NULL terminator */
+      char *to;
+      char to_imsi[16];
+    } sip;
   } protos;
 
   /* **Packet** metadata for flows where monitoring is enabled. It is reset after each packet! */

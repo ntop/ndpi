@@ -29,9 +29,13 @@
 #include "ndpi_api.h"
 #include "ndpi_private.h"
 
+static void search_metadata(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow);
+
 static void ndpi_int_sip_add_connection(struct ndpi_detection_module_struct *ndpi_struct,
 					struct ndpi_flow_struct *flow) {
   ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_SIP, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
+
+  search_metadata(ndpi_struct, flow);
 }
 
 /* ********************************************************** */
@@ -128,9 +132,103 @@ static int search_cmd(struct ndpi_detection_module_struct *ndpi_struct)
   return 0;
 }
 
+/* ********************************************************** */
 
+static char *get_imsi(const char *str, int *imsi_len)
+{
+  char *s, *e, *c;
 
-void ndpi_search_sip(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow) {
+  /* Format: <sip:XXXXXXXXXXXXXXX@ims.mncYYY.mccZZZ.3gppnetwork.org>;tag=YpUNxYCzz0dMHM */
+
+  s = ndpi_strnstr(str, "<sip:", strlen(str));
+  if(!s)
+    return NULL;
+  e = ndpi_strnstr(s, "@", strlen(s));
+  if(!e)
+    return NULL;
+  *imsi_len = e - s - 5;
+  /* IMSI is 14 or 15 digit length */
+  if(*imsi_len != 14 && *imsi_len != 15)
+    return NULL;
+  for(c = s + 5; c != e; c++)
+    if(!isdigit(*c))
+      return NULL;
+  return s + 5;
+}
+
+/* ********************************************************** */
+
+static int metadata_enabled(struct ndpi_detection_module_struct *ndpi_struct)
+{
+  /* At least one */
+  return ndpi_struct->cfg.sip_attribute_from_enabled ||
+         ndpi_struct->cfg.sip_attribute_from_imsi_enabled ||
+         ndpi_struct->cfg.sip_attribute_to_enabled ||
+         ndpi_struct->cfg.sip_attribute_to_imsi_enabled;
+}
+
+/* ********************************************************** */
+
+static void search_metadata(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow)
+{
+  struct ndpi_packet_struct *packet = &ndpi_struct->packet;
+  u_int16_t a;
+  int str_len, imsi_len;
+  char *str, *imsi;
+
+  if(!metadata_enabled(ndpi_struct))
+    return;
+
+  NDPI_PARSE_PACKET_LINE_INFO(ndpi_struct, flow, packet);
+
+  for(a = 0; a < packet->parsed_lines; a++) {
+    /* From */
+    if(ndpi_struct->cfg.sip_attribute_from_enabled &&
+       flow->protos.sip.from == NULL &&
+       packet->line[a].len >= 5 &&
+       memcmp(packet->line[a].ptr, "From:", 5) == 0) {
+      str_len = packet->line[a].len - 5;
+      str = ndpi_strip_leading_trailing_spaces((char *)packet->line[a].ptr + 5, &str_len);
+      if(str) {
+        NDPI_LOG_DBG2(ndpi_struct, "Found From: %.*s\n", str_len, str);
+        flow->protos.sip.from = ndpi_strndup(str, str_len);
+        if(ndpi_struct->cfg.sip_attribute_from_imsi_enabled &&
+           flow->protos.sip.from) {
+          imsi = get_imsi(flow->protos.sip.from, &imsi_len);
+          if(imsi) {
+            NDPI_LOG_DBG2(ndpi_struct, "Found From IMSI: %.*s\n", imsi_len, imsi);
+            memcpy(flow->protos.sip.from_imsi, imsi, imsi_len);
+          }
+        }
+      }
+    }
+
+    /* To */
+    if(ndpi_struct->cfg.sip_attribute_to_enabled &&
+       flow->protos.sip.to == NULL &&
+       packet->line[a].len >= 3 &&
+       memcmp(packet->line[a].ptr, "To:", 3) == 0) {
+      str_len = packet->line[a].len - 3;
+      str = ndpi_strip_leading_trailing_spaces((char *)packet->line[a].ptr + 3, &str_len);
+      if(str) {
+        NDPI_LOG_DBG2(ndpi_struct, "Found To: %.*s\n", str_len, str);
+        flow->protos.sip.to = ndpi_strndup(str, str_len);
+        if(ndpi_struct->cfg.sip_attribute_to_imsi_enabled &&
+           flow->protos.sip.to) {
+          imsi = get_imsi(flow->protos.sip.to, &imsi_len);
+          if(imsi) {
+            NDPI_LOG_DBG2(ndpi_struct, "Found To IMSI: %.*s\n", imsi_len, imsi);
+            memcpy(flow->protos.sip.to_imsi, imsi, imsi_len);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ********************************************************** */
+
+static void ndpi_search_sip(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow) {
   struct ndpi_packet_struct *packet = &ndpi_struct->packet;
   const u_int8_t *packet_payload = packet->payload;
   u_int32_t payload_len = packet->payload_packet_len;
