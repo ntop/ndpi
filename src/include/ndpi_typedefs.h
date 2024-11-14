@@ -1532,7 +1532,13 @@ struct ndpi_flow_struct {
       char *to;
       char to_imsi[16];
     } sip;
-  } protos;
+
+    struct {
+      char mac_addr[6], identity[16], version[48], sw_id[16], board[32], iface_name[32];
+      u_int32_t ipv4_addr, uptime;
+      struct ndpi_in6_addr ipv6_addr;
+    } mikrotik;
+} protos;
 
   /* **Packet** metadata for flows where monitoring is enabled. It is reset after each packet! */
   struct ndpi_metadata_monitoring *monit;

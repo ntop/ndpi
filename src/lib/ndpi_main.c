@@ -1634,6 +1634,10 @@ static void ndpi_init_protocol_defaults(struct ndpi_detection_module_struct *ndp
 			  "MPEG_TS", NDPI_PROTOCOL_CATEGORY_MEDIA,
 			  ndpi_build_default_ports(ports_a, 0, 0, 0, 0, 0) /* TCP */,
 			  ndpi_build_default_ports(ports_b, 0, 0, 0, 0, 0) /* UDP */);
+  ndpi_set_proto_defaults(ndpi_str, 1 /* cleartext */, 0 /* nw proto */, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_MIKROTIK,
+			  "Mikrotik", NDPI_PROTOCOL_CATEGORY_NETWORK,
+			  ndpi_build_default_ports(ports_a, 0, 0, 0, 0, 0) /* TCP */,
+			  ndpi_build_default_ports(ports_b, 0, 0, 0, 0, 0) /* UDP */);
   /* http://en.wikipedia.org/wiki/Link-local_Multicast_Name_Resolution */
   ndpi_set_proto_defaults(ndpi_str, 1 /* cleartext */, 0 /* nw proto */, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_LLMNR,
 			  "LLMNR", NDPI_PROTOCOL_CATEGORY_NETWORK,
@@ -5949,6 +5953,9 @@ static int ndpi_callback_init(struct ndpi_detection_module_struct *ndpi_str) {
 
   /* KAKAOTALK_VOICE */
   init_kakaotalk_voice_dissector(ndpi_str, &a);
+
+  /* MIKROTIK */
+  init_mikrotik_dissector(ndpi_str, &a);
 
   /* MPEGTS */
   init_mpegts_dissector(ndpi_str, &a);

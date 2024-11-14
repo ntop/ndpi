@@ -759,6 +759,7 @@ void init_maplestory_dissector(struct ndpi_detection_module_struct *ndpi_struct,
 void init_megaco_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_mgcp_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_mining_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
+void init_mikrotik_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_mms_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_monero_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_nats_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);

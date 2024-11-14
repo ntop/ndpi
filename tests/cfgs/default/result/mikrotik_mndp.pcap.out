@@ -1,0 +1,29 @@
+DPI Packets (UDP):	3	(1.00 pkts/flow)
+Confidence DPI              : 3 (flows)
+Num dissector calls: 171 (57.00 diss/flow)
+LRU cache ookla:      0/0/0 (insert/search/found)
+LRU cache bittorrent: 0/0/0 (insert/search/found)
+LRU cache stun:       0/0/0 (insert/search/found)
+LRU cache tls_cert:   0/0/0 (insert/search/found)
+LRU cache mining:     0/0/0 (insert/search/found)
+LRU cache msteams:    0/0/0 (insert/search/found)
+LRU cache fpc_dns:    0/0/0 (insert/search/found)
+Automa host:          0/0 (search/found)
+Automa domain:        0/0 (search/found)
+Automa tls cert:      0/0 (search/found)
+Automa risk mask:     0/0 (search/found)
+Automa common alpns:  0/0 (search/found)
+Patricia risk mask:   0/0 (search/found)
+Patricia risk mask IPv6: 0/0 (search/found)
+Patricia risk:        0/0 (search/found)
+Patricia risk IPv6:   2/0 (search/found)
+Patricia protocols:   2/0 (search/found)
+Patricia protocols IPv6: 4/0 (search/found)
+
+Mikrotik	3	601	3
+
+Acceptable                       3 601           3            
+
+	1	UDP 192.168.2.106:5678 -> 255.255.255.255:5678 [proto: 437/Mikrotik][IP: 0/Unknown][ClearText][Confidence: DPI][FPC: 437/Mikrotik, Confidence: DPI][DPI packets: 1][cat: Network/14][1 pkts/219 bytes -> 0 pkts/0 bytes][Goodput ratio: 80/0][< 1 sec][PLAIN TEXT (MikroTik Ax)][Plen Bins: 0,0,0,0,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	2	UDP [fe80::4e5e:cff:feea:365]:5678 -> [ff02::1]:5678 [proto: 437/Mikrotik][IP: 0/Unknown][ClearText][Confidence: DPI][FPC: 437/Mikrotik, Confidence: DPI][DPI packets: 1][cat: Network/14][1 pkts/197 bytes -> 0 pkts/0 bytes][Goodput ratio: 68/0][< 1 sec][PLAIN TEXT (6.35.1 )][Plen Bins: 0,0,0,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	3	UDP [fe80::4e5e:cff:fe9a:ec54]:5678 -> [ff02::1]:5678 [proto: 437/Mikrotik][IP: 0/Unknown][ClearText][Confidence: DPI][FPC: 437/Mikrotik, Confidence: DPI][DPI packets: 1][cat: Network/14][1 pkts/185 bytes -> 0 pkts/0 bytes][Goodput ratio: 66/0][< 1 sec][PLAIN TEXT (6.35.1 )][Plen Bins: 0,0,0,100,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
