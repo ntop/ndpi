@@ -3,7 +3,7 @@ Section: free
 Priority: optional
 Maintainer: Luca Deri <deri@ntop.org>
 Standards-Version: @NDPI_VERS@
-Build-Depends:
+Build-Depends: debhelper
 Build-Conflicts:
 
 Package: ndpi

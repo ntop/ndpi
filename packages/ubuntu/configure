@@ -704,6 +704,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_no_sign
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1326,6 +1327,12 @@ if test -n "$ac_init_help"; then
      short | recursive ) echo "Configuration of Makefile.in 1.0:";;
    esac
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-no-sign        do not try to sign any package
 
 Some influential environment variables:
   CC          C compiler command
@@ -3329,6 +3336,19 @@ if test -f /usr/bin/debsigs; then
   SIGN_CMD="/usr/bin/debsigs"
 else
   SIGN_CMD="dpkg-sig"
+fi
+
+# Check whether --enable-no-sign was given.
+if test ${enable_no_sign+y}
+then :
+  enableval=$enable_no_sign;
+fi
+
+if test "${enable_no_sign+set}" = set
+then :
+
+  SIGN_CMD="true"
+
 fi
 
 ac_config_files="$ac_config_files Makefile debian/changelog debian/files debian/control"

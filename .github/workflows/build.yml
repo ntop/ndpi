@@ -234,7 +234,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64')
         run: |
           sudo apt-get update
-          sudo apt-get install autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev
+          sudo apt-get install autoconf automake debhelper libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev
           sudo apt-get install rrdtool librrd-dev parallel
       - name: Install Ubuntu Prerequisites [Mingw-w64] (runs only on ubuntu jobs)
         if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') #Only on a few "standard" builds, without any sanitizers
@@ -372,6 +372,13 @@ jobs:
         run: |
           make dist
           ./utils/verify_dist_tarball.sh
+      - name: Build Debian/Ubuntu package
+        if: startsWith(matrix.os, 'ubuntu-24.04') && startsWith(matrix.arch, 'x86_64') && startsWith(matrix.compiler, 'cc')
+        run: |
+          cd packages/ubuntu
+          ./configure --enable-no-sign
+          make
+          cd ../..
       - name: Build nDPI [Mingw-w64] (runs only on ubuntu jobs)
         if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') #Only on a few "standard" builds, without any sanitizers
         run: |
