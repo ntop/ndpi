@@ -970,7 +970,8 @@ void init_trdp_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int
 void init_lustre_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_dingtalk_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
 void init_paltalk_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
-
+void init_dicom_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id);
+  
 #endif
 
 #ifdef __cplusplus

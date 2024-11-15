@@ -408,7 +408,7 @@ typedef enum {
   NDPI_PROTOCOL_APACHE_KAFKA          = 377,
   NDPI_PROTOCOL_NOMACHINE             = 378,
   NDPI_PROTOCOL_IEC62056              = 379,
-  NDPI_PROTOCOL_HL7                   = 380,
+  NDPI_PROTOCOL_HL7                   = 380, /* Hospital Protocol */
   NDPI_PROTOCOL_CEPH                  = 381,
   NDPI_PROTOCOL_GOOGLE_CHAT           = 382,
   NDPI_PROTOCOL_ROUGHTIME             = 383,
@@ -466,6 +466,7 @@ typedef enum {
   NDPI_PROTOCOL_TEMU                  = 435,
   NDPI_PROTOCOL_TAOBAO                = 436,
   NDPI_PROTOCOL_MIKROTIK              = 437,
+  NDPI_PROTOCOL_DICOM                 = 438, /* Hospital Protocol */
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_protocol_ids.h"
