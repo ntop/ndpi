@@ -53,7 +53,7 @@ static void ndpi_search_mikrotik(struct ndpi_detection_module_struct *ndpi_struc
 
 	// printf("%d\n", m_type);
 
-	if((m_len+offset) < packet->payload_packet_len) {
+	if((4+m_len+offset) < packet->payload_packet_len) {
 	  switch(m_type) {
 	  case 1 /* MAC Address */:
 	    if(m_len == 6)
