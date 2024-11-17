@@ -1511,6 +1511,52 @@ int ndpi_dpi2json(struct ndpi_detection_module_struct *ndpi_struct,
     ndpi_serialize_end_of_block(serializer);
     break;
 
+  case NDPI_PROTOCOL_MIKROTIK:
+    {
+      char buf[32];
+
+      ndpi_serialize_start_of_block(serializer, "mikrotik");
+
+      snprintf(buf, sizeof(buf), "%02X:%02X:%02X:%02X:%02X:%02X",
+	       flow->protos.mikrotik.mac_addr[0] & 0xFF,
+	       flow->protos.mikrotik.mac_addr[1] & 0xFF,
+	       flow->protos.mikrotik.mac_addr[2] & 0xFF,
+	       flow->protos.mikrotik.mac_addr[3] & 0xFF,
+	       flow->protos.mikrotik.mac_addr[4] & 0xFF,
+	       flow->protos.mikrotik.mac_addr[5] & 0xFF);
+
+      ndpi_serialize_string_string(serializer, "mac_address", buf);
+
+      if(flow->protos.mikrotik.identity[0] != '\0')
+	ndpi_serialize_string_string(serializer, "identity", flow->protos.mikrotik.identity);
+
+      if(flow->protos.mikrotik.version[0] != '\0')
+	ndpi_serialize_string_string(serializer, "version", flow->protos.mikrotik.version);
+
+      if(flow->protos.mikrotik.sw_id[0] != '\0')
+	ndpi_serialize_string_string(serializer, "software_id", flow->protos.mikrotik.sw_id);
+
+      if(flow->protos.mikrotik.board[0] != '\0')
+	ndpi_serialize_string_string(serializer, "board", flow->protos.mikrotik.board);
+
+      if(flow->protos.mikrotik.iface_name[0] != '\0')
+	ndpi_serialize_string_string(serializer, "iface_name", flow->protos.mikrotik.iface_name);
+
+      if(flow->protos.mikrotik.ipv4_addr != 0)
+	ndpi_serialize_string_string(serializer, "ipv4_addr",
+				     ndpi_intoav4(flow->protos.mikrotik.ipv4_addr, buf, sizeof(buf)));
+
+      if(flow->protos.mikrotik.ipv6_addr.u6_addr.u6_addr64[0] != 0)
+	ndpi_serialize_string_string(serializer, "ipv6_addr",
+				     ndpi_intoav6(&flow->protos.mikrotik.ipv6_addr, buf, sizeof(buf)));
+
+      if(flow->protos.mikrotik.uptime != 0)
+	ndpi_serialize_string_uint32(serializer, "uptime", flow->protos.mikrotik.uptime);
+
+      ndpi_serialize_end_of_block(serializer);
+    }
+    break;
+
   case NDPI_PROTOCOL_DISCORD:
     if (l7_protocol.proto.master_protocol != NDPI_PROTOCOL_TLS) {
       ndpi_serialize_start_of_block(serializer, "discord");
@@ -3357,8 +3403,7 @@ u_int8_t ndpi_check_flow_risk_exceptions(struct ndpi_detection_module_struct *nd
 
 /* ******************************************* */
 
-int64_t asn1_ber_decode_length(const unsigned char *payload, int payload_len, u_int16_t *value_len)
-{
+int64_t asn1_ber_decode_length(const unsigned char *payload, int payload_len, u_int16_t *value_len) {
   unsigned int value, i;
 
   if(payload_len <= 0)
@@ -3387,6 +3432,7 @@ int64_t asn1_ber_decode_length(const unsigned char *payload, int payload_len, u_
   for (i = 1; i <= *value_len; i++) {
     value |= (unsigned int)payload[i] << ((*value_len) - i) * 8;
   }
+
   (*value_len) += 1;
   return value;
 }
@@ -3420,6 +3466,37 @@ char* ndpi_intoav4(unsigned int addr, char* buf, u_int16_t bufLen) {
   return(cp);
 }
 
+/* ****************************************************** */
+
+char* ndpi_intoav6(struct ndpi_in6_addr *addr, char* buf, u_int16_t bufLen) {
+  char *ret;
+  const u_int8_t use_brackets = 0;
+
+  if(use_brackets == 0) {
+    ret = (char*)inet_ntop(AF_INET6, (struct in6_addr *)addr, buf, bufLen);
+
+    if(ret == NULL) {
+      /* Internal error (buffer too short */
+      buf[0] = '\0';
+    }
+  } else {
+    ret = (char*)inet_ntop(AF_INET6, (struct in6_addr *)addr, &buf[1], bufLen-1);
+
+    if(ret == NULL) {
+      /* Internal error (buffer too short) */
+      buf[0] = '\0';
+    } else {
+      int len = strlen(ret);
+
+      buf[0] = '[';
+      buf[len+1] = ']';
+      buf[len+2] = '\0';
+    }
+  }
+
+  return(buf);
+}
+
 /* ******************************************* */
 
 /* Find the nearest (>=) value of x */
@@ -3438,8 +3515,7 @@ u_int32_t ndpi_nearest_power_of_two(u_int32_t x) {
 
 /* ******************************************* */
 
-int tpkt_verify_hdr(const struct ndpi_packet_struct * const packet)
-{
+int tpkt_verify_hdr(const struct ndpi_packet_struct * const packet) {
   return ((packet->tcp != NULL) && (packet->payload_packet_len > 4) &&
           (packet->payload[0] == 3) && (packet->payload[1] == 0) &&
           (get_u_int16_t(packet->payload,2) == htons(packet->payload_packet_len)));
@@ -3549,7 +3625,6 @@ size_t ndpi_compress_str(const char * in, size_t len, char * out, size_t bufsize
 
 size_t ndpi_decompress_str(const char * in, size_t len, char * out, size_t bufsize) {
   return(shoco_decompress(in, len, out, bufsize));
-
 }
 
 /* ******************************************* */

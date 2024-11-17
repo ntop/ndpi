@@ -621,7 +621,8 @@ u_int ndpi_search_tcp_or_udp_raw(struct ndpi_detection_module_struct *ndpi_struc
 				 u_int32_t saddr, u_int32_t daddr);
 
 char* ndpi_intoav4(unsigned int addr, char* buf, u_int16_t bufLen);
-
+char* ndpi_intoav6(struct ndpi_in6_addr *addr, char* buf, u_int16_t bufLen);
+  
 int is_flow_addr_informative(const struct ndpi_flow_struct *flow);
 
 u_int16_t icmp4_checksum(u_int8_t const * const buf, size_t len);
