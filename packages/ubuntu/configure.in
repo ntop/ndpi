@@ -1,4 +1,4 @@
-AC_INIT([Makefile.in], 1.0)
+AC_INIT([Makefile.in],[1.0])
 
 DATE=`date -R`
 KERNEL=`uname -r`
@@ -29,7 +29,7 @@ MAJOR_RELEASE=`$(dirname "${0}")/../version.sh --major-release`
 GIT_REVISION=`$(dirname "${0}")/../version.sh --revision`
 
 AC_CHECK_LIB([maxminddb], [MMDB_lookup_sockaddr])
-AC_HAVE_HEADERS(maxminddb.h)
+AC_CHECK_HEADERS([maxminddb.h])
 if test ".${ac_cv_lib_maxminddb_MMDB_lookup_sockaddr}" = ".yes" &&
       test ".${ac_cv_header_maxminddb_h}" = ".yes"; then
       GEOIP_DEP=", libmaxminddb0"
@@ -40,6 +40,11 @@ if test -f /usr/bin/debsigs; then
 else
   SIGN_CMD="dpkg-sig"
 fi
+
+AC_ARG_ENABLE(no-sign, AS_HELP_STRING([--enable-no-sign], [do not try to sign any package]))
+AS_IF([test "${enable_no_sign+set}" = set],[
+  SIGN_CMD="true"
+])
 
 AC_CONFIG_FILES([Makefile debian/changelog debian/files debian/control])
 
