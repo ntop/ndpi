@@ -459,6 +459,7 @@ static ndpi_protocol_match host_match[] =
    { "iosapps.itunes.apple.com",                  "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL }, /* iOS */
    { "osxapps.itunes.apple.com",                  "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL }, /* MacOS */
    { "-buy.itunes.apple.com",                     "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "buy.itunes.apple.com",                      "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "su.itunes.apple.com",                       "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "se.itunes.apple.com",                       "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "myapp.itunes.apple.com",                    "AppleStore",       NDPI_PROTOCOL_APPLESTORE, NDPI_PROTOCOL_CATEGORY_SW_UPDATE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -790,7 +791,7 @@ static ndpi_protocol_match host_match[] =
    { "twitch.tv",                       "Twitch",           NDPI_PROTOCOL_TWITCH, NDPI_PROTOCOL_CATEGORY_VIDEO, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "twitchcdn.net",                   "Twitch",           NDPI_PROTOCOL_TWITCH, NDPI_PROTOCOL_CATEGORY_VIDEO, NDPI_PROTOCOL_FUN , NDPI_PROTOCOL_DEFAULT_LEVEL},
    { "twitchsvc.net",                   "Twitch",           NDPI_PROTOCOL_TWITCH, NDPI_PROTOCOL_CATEGORY_VIDEO, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
-   { "contribute.live-video.net",       "Twitch",           NDPI_PROTOCOL_TWITCH, NDPI_PROTOCOL_CATEGORY_VIDEO, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "live-video.net",                  "Twitch",           NDPI_PROTOCOL_TWITCH, NDPI_PROTOCOL_CATEGORY_VIDEO, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
    { "qq.com",                                   "QQ",               NDPI_PROTOCOL_QQ, NDPI_PROTOCOL_CATEGORY_CHAT, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "gtimg.com",                                "QQ",               NDPI_PROTOCOL_QQ, NDPI_PROTOCOL_CATEGORY_CHAT, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -847,6 +848,7 @@ static ndpi_protocol_match host_match[] =
    { "webtrends.com",                                         "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_WEB, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "msecnd.net",                                            "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_WEB, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "bing.com",                                              "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_WEB, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "bing.net",                                              "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_WEB, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "visualstudio.com",                                      "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "login.live.com",                                        "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "statics-marketingsites-wcus-ms-com.akamaized.net",      "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_WEB, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -881,6 +883,7 @@ static ndpi_protocol_match host_match[] =
    { "testconnectivity.microsoft.com",                        "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_CONNECTIVITY_CHECK, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teredo.ipv6.microsoft.com",                             "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_CONNECTIVITY_CHECK, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teredo.ipv6.microsoft.com.nsatc.net",                   "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_CONNECTIVITY_CHECK, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "cortana.ai",                                            "Microsoft",        NDPI_PROTOCOL_MICROSOFT, NDPI_PROTOCOL_CATEGORY_CLOUD, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
    { "azure.com",                                            "Azure",        NDPI_PROTOCOL_MICROSOFT_AZURE, NDPI_PROTOCOL_CATEGORY_CLOUD, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "azureedge.us",                                         "Azure",        NDPI_PROTOCOL_MICROSOFT_AZURE, NDPI_PROTOCOL_CATEGORY_CLOUD, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -893,13 +896,13 @@ static ndpi_protocol_match host_match[] =
    { "teams.microsoft.us",               "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.skype.com",                  "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.live.com",                   "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
-   { "-teams.cloudapp.net",              "Teams", NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "-teams.cloudapp.net",              "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.trafficmanager.net",         "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams-msgapi.trafficmanager.net",  "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.office.net",                 "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.office.com",                 "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "statics.teams.cdn.live.net",       "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
-   { "mstea.ms",                        "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "mstea.ms",                         "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "teams.events.data.microsoft.com",  "Teams",         NDPI_PROTOCOL_MSTEAMS, NDPI_PROTOCOL_CATEGORY_COLLABORATIVE, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
    { "storage.live.com",               "MS_OneDrive",  NDPI_PROTOCOL_MS_ONE_DRIVE,NDPI_PROTOCOL_CATEGORY_CLOUD,  NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -1255,6 +1258,7 @@ static ndpi_protocol_match host_match[] =
    { "esvarbl.com",                      "Cybersec", NDPI_PROTOCOL_CYBERSECURITY, NDPI_PROTOCOL_CATEGORY_CYBERSECURITY, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "abuse.ch",                         "Cybersec", NDPI_PROTOCOL_CYBERSECURITY, NDPI_PROTOCOL_CATEGORY_CYBERSECURITY, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "dnsbl.", /* www.dnsbl.info */      "Cybersec", NDPI_PROTOCOL_CYBERSECURITY, NDPI_PROTOCOL_CATEGORY_CYBERSECURITY, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   { "cleanbrowsing.org",                "Cybersec", NDPI_PROTOCOL_CYBERSECURITY, NDPI_PROTOCOL_CATEGORY_CYBERSECURITY, NDPI_PROTOCOL_SAFE, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
    { "pluralsight.com",                                                     "Pluralsight", NDPI_PROTOCOL_PLURALSIGHT, NDPI_PROTOCOL_CATEGORY_STREAMING, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "pluralsight2.imgix.net",                                              "Pluralsight", NDPI_PROTOCOL_PLURALSIGHT, NDPI_PROTOCOL_CATEGORY_STREAMING, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
@@ -1532,6 +1536,8 @@ static ndpi_protocol_match host_match[] =
    { "tvsquared.com",                    "ADS_Analytic_Track", NDPI_PROTOCOL_ADS_ANALYTICS_TRACK, CUSTOM_CATEGORY_ADVERTISEMENT, NDPI_PROTOCOL_TRACKER_ADS, NDPI_PROTOCOL_DEFAULT_LEVEL },
    /* Mixpanel facilitates global data analysis by offering event analytics, enabling valuable insights to be derived from data. */
    { "mixpanel.com",                    "ADS_Analytic_Track", NDPI_PROTOCOL_ADS_ANALYTICS_TRACK, CUSTOM_CATEGORY_ADVERTISEMENT, NDPI_PROTOCOL_TRACKER_ADS, NDPI_PROTOCOL_DEFAULT_LEVEL },
+   /* Equativ (formerly known as Smart AdServer) is a French advertising technology company */
+   { "smartadserver.com",                "ADS_Analytic_Track", NDPI_PROTOCOL_ADS_ANALYTICS_TRACK, CUSTOM_CATEGORY_ADVERTISEMENT, NDPI_PROTOCOL_TRACKER_ADS, NDPI_PROTOCOL_DEFAULT_LEVEL },
    /* Twitter ADS */
    { "ads-twitter.com",                 "ADS_Analytic_Track", NDPI_PROTOCOL_ADS_ANALYTICS_TRACK, CUSTOM_CATEGORY_ADVERTISEMENT, NDPI_PROTOCOL_TRACKER_ADS, NDPI_PROTOCOL_DEFAULT_LEVEL },
    /* TANX (Taobao Ad Network and Exchange) is an advertising and marketing platform based in China */
