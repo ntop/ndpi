@@ -40,43 +40,164 @@ int is_valid_rtp_payload_type(uint8_t type)
   return 1;
 }
 
-u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_type)
+u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_type, u_int16_t sub_proto)
 {
+  /* General, from IANA */
   switch(payloadType) {
   case 0: /* G.711 u-Law */
   case 3: /* GSM 6.10 */
   case 4: /* G.723.1  */
+  case 5: /* DVI4 */
+  case 6: /* DVI4 */
+  case 7: /* LPC */
   case 8: /* G.711 A-Law */
   case 9: /* G.722 */
+  case 10: /* L16 */
+  case 11: /* L16 */
+  case 12: /* QCELP */
   case 13: /* Comfort Noise */
-  case 96: /* Dynamic RTP */
-  case 97: /* Redundant Audio Data Payload */
-  case 98: /* DynamicRTP-Type-98 (Zoom) */
-  case 101: /* DTMF */
-  case 103: /* SILK Narrowband */
-  case 104: /* SILK Wideband */
-  case 111: /* Siren */
-  case 112: /* G.722.1 */
-  case 114: /* RT Audio Wideband */
-  case 115: /* RT Audio Narrowband */
-  case 116: /* G.726 */
-  case 117: /* G.722 */
-  case 118: /* Comfort Noise Wideband */
+  case 14: /* MPA */
+  case 15: /* G728 */
+  case 16: /* DVI4 */
+  case 17: /* DVI4 */
+  case 18: /* G729 */
     *s_type = ndpi_multimedia_audio_flow;
     return(1);
-    
-  case 34: /* H.263 [MS-H26XPF] */
-  case 121: /* RT Video */
-  case 122: /* H.264 [MS-H264PF] */
-  case 123: /* H.264 FEC [MS-H264PF] */
-  case 127: /* x-data */
+
+  case 25: /* CelB */
+  case 26: /* JPEG */
+  case 28: /* nv */
+  case 31: /* H261 */
+  case 32: /* MPV */
+  case 34: /* H263 */
     *s_type = ndpi_multimedia_video_flow;
     return(1);
-
-  default:
-    *s_type = ndpi_multimedia_unknown_flow;
-    return(0);
   }
+
+  /* Microsoft; from https://learn.microsoft.com/en-us/openspecs/office_protocols/ms-rtp/3b8dc3c6-34b8-4827-9b38-3b00154f471c */
+  if(sub_proto == NDPI_PROTOCOL_SKYPE_TEAMS_CALL) {
+    switch(payloadType) {
+    case 103: /* SILK Narrowband */
+    case 104: /* SILK Wideband */
+    case 106: /* OPUS */
+    case 111: /* Siren */
+    case 112: /* G.722.1 */
+    case 114: /* RT Audio Wideband */
+    case 115: /* RT Audio Narrowband */
+    case 116: /* G.726 */
+    case 117: /* G.722 */
+    case 118: /* Comfort Noise Wideband */
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 34: /* H.263 [MS-H26XPF] */
+    case 121: /* RT Video */
+    case 122: /* H.264 [MS-H264PF] */
+    case 123: /* H.264 FEC [MS-H264PF] */
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  /* Dynamic PTs are... dynamic... :D
+   * Looking at some traces, it seems specific applications keep using
+   * always the same PT for audio/video...
+   * TODO: something better?
+   * Bottom line: checking only PT is very fast/easy, but we might have
+   * false positives/negatives
+   */
+
+  if(sub_proto == NDPI_PROTOCOL_GOOGLE_CALL) {
+    switch(payloadType) {
+    case 111:
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 96:
+    case 100:
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  if(sub_proto == NDPI_PROTOCOL_WHATSAPP_CALL) {
+    switch(payloadType) {
+    case 120:
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 97:
+    case 102:
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  if(sub_proto == NDPI_PROTOCOL_FACEBOOK_VOIP) {
+    switch(payloadType) {
+    case 96:
+    case 97:
+    case 101:
+    case 109:
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 127:
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  if(sub_proto == NDPI_PROTOCOL_TELEGRAM_VOIP) {
+    switch(payloadType) {
+    case 111:
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 106:
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  if(sub_proto == NDPI_PROTOCOL_SIGNAL_VOIP) {
+    switch(payloadType) {
+    case 102:
+      *s_type = ndpi_multimedia_audio_flow;
+      return(1);
+
+    case 120:
+      *s_type = ndpi_multimedia_video_flow;
+      return(1);
+
+    default:
+      *s_type = ndpi_multimedia_unknown_flow;
+      return(0);
+    }
+  }
+
+  *s_type = ndpi_multimedia_unknown_flow;
+  return(0);
 }
 
 static int is_valid_rtcp_payload_type(uint8_t type) {
@@ -203,7 +324,7 @@ static void ndpi_rtp_search(struct ndpi_detection_module_struct *ndpi_struct,
         NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
         NDPI_EXCLUDE_PROTO_EXT(ndpi_struct, flow, NDPI_PROTOCOL_RTCP);
       } else {
-        rtp_get_stream_type(payload[1] & 0x7F, &flow->flow_multimedia_type);
+        rtp_get_stream_type(payload[1] & 0x7F, &flow->flow_multimedia_type, NDPI_PROTOCOL_UNKNOWN);
 
         NDPI_LOG_INFO(ndpi_struct, "Found RTP\n");
         ndpi_int_rtp_add_connection(ndpi_struct, flow, NDPI_PROTOCOL_RTP);
