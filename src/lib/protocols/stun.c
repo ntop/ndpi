@@ -877,7 +877,7 @@ static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
       NDPI_LOG_DBG(ndpi_struct, "RTP (dir %d)\n", packet->packet_direction);
       NDPI_LOG_INFO(ndpi_struct, "Found RTP over STUN\n");
 
-      rtp_get_stream_type(packet->payload[1] & 0x7F, &flow->flow_multimedia_type);
+      rtp_get_stream_type(packet->payload[1] & 0x7F, &flow->flow_multimedia_type, flow->detected_protocol_stack[0]);
 
       if(flow->detected_protocol_stack[0] != NDPI_PROTOCOL_RTP &&
          flow->detected_protocol_stack[0] != NDPI_PROTOCOL_RTCP &&
