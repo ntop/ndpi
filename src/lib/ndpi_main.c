@@ -8012,13 +8012,17 @@ static void ndpi_check_probing_attempt(struct ndpi_flow_struct *flow) {
 	  break;
 
 	case NDPI_PROTOCOL_TLS:
-	  /* case NDPI_PROTOCOL_QUIC: */
 	case NDPI_PROTOCOL_MAIL_SMTPS:
 	case NDPI_PROTOCOL_MAIL_POPS:
 	case NDPI_PROTOCOL_MAIL_IMAPS:
 	case NDPI_PROTOCOL_DTLS:
 	  if(flow->host_server_name[0] == '\0')
 	    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "TLS Probing");
+	  break;
+
+	case NDPI_PROTOCOL_QUIC:
+	  if(flow->host_server_name[0] == '\0')
+	    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "QUIC Probing");
 	  break;
 	}
       }
