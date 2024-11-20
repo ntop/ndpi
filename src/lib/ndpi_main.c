@@ -2230,7 +2230,7 @@ static void ndpi_init_protocol_defaults(struct ndpi_detection_module_struct *ndp
   ndpi_set_proto_defaults(ndpi_str, 1 /* cleartext */, 0 /* nw proto */, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_IEC62056,
 			  "IEC62056", NDPI_PROTOCOL_CATEGORY_IOT_SCADA,
 			  ndpi_build_default_ports(ports_a, 4059, 0, 0, 0, 0) /* TCP */,
-			  ndpi_build_default_ports(ports_b, 4059, 0, 0, 0, 0) /* UDP */);  
+			  ndpi_build_default_ports(ports_b, 4059, 0, 0, 0, 0) /* UDP */);
   ndpi_set_proto_defaults(ndpi_str, 1 /* cleartext */, 0 /* nw proto */, NDPI_PROTOCOL_ACCEPTABLE, NDPI_PROTOCOL_HL7,
 			  "HL7", NDPI_PROTOCOL_CATEGORY_IOT_SCADA,
 			  ndpi_build_default_ports(ports_a, 2575, 0, 0, 0, 0) /* TCP */,
@@ -7035,7 +7035,7 @@ static int ndpi_init_packet(struct ndpi_detection_module_struct *ndpi_str,
 #ifdef DEBUG_TCP_OPTIONS
 	    printf("Raw Options Fingerprint: %s\n", options_fp);
 #endif
-	    
+
 	    ndpi_sha256((const u_char*)options_fp, options_fp_len, sha_hash);
 
 	    snprintf(&fingerprint[fp_idx], sizeof(fingerprint)-fp_idx, "%02x%02x%02x%02x%02x%02x",
@@ -7973,19 +7973,21 @@ int search_into_bittorrent_cache(struct ndpi_detection_module_struct *ndpi_struc
  */
 static void ndpi_check_tcp_flags(struct ndpi_flow_struct *flow) {
   // printf("[TOTAL] %u / %u [tot: %u]\n", flow->packet_direction_complete_counter[0], flow->packet_direction_complete_counter[1], flow->all_packets_counter);
+  bool is_probing = false;
 
   if((flow->l4.tcp.cli2srv_tcp_flags & TH_SYN)
      && (flow->l4.tcp.srv2cli_tcp_flags & TH_RST)
-     && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */)
-     )
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (server)");
+     && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */))
+    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (server)"), is_probing = true;
   else if((flow->l4.tcp.cli2srv_tcp_flags & TH_SYN)
 	  && (flow->l4.tcp.cli2srv_tcp_flags & TH_RST)
-	  && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */)
-     )
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (client)");
+	  && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */))
+    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (client)"), is_probing = true;
   else if((flow->l4.tcp.srv2cli_tcp_flags & TH_RST) && (flow->packet_direction_complete_counter[1 /* server -> client */] == 1))
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "TCP probing attempt");
+    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused"), is_probing = true;
+
+  if(is_probing)
+    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "TCP probing attempt");
 }
 
 /* ******************************************************************** */
@@ -9361,7 +9363,7 @@ void ndpi_parse_packet_line_info(struct ndpi_detection_module_struct *ndpi_str, 
       /* If end of line char sequence CR+NL "\r\n", process line */
 
       flow->http.request_header_observed = 1;
-      
+
       if(((a + 3) < packet->payload_packet_len)
 	 && (packet->payload[a+2] == 0x0d)
 	 && (packet->payload[a+3] == 0x0a)) {
