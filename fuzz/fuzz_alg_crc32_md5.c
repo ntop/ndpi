@@ -6,10 +6,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   ndpi_MD5_CTX ctx;
   struct ndpi_popcount popcount;
   char *str;
+  u_int len;
+  u_char out[2048], out2[2048];
+  int pseudo_bool;
 
   /* No memory allocations involved */
 
-  /* Used for crc32, md5, hash(es) and popcount algs */
+  /* Used for crc32, md5, hash(es), popcount and hex2bin algs */
+
+  pseudo_bool = (size % 2 == 0);
 
   ndpi_crc16_ccit(data, size);
   ndpi_crc16_ccit_false(data, size);
@@ -44,8 +49,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   }
   
 
-  ndpi_popcount_init(&popcount);
-  ndpi_popcount_count(&popcount, data, size);
+  ndpi_popcount_init(pseudo_bool ? &popcount : NULL);
+  ndpi_popcount_count(pseudo_bool ? &popcount : NULL, data, size);
+
+  len = ndpi_bin2hex(out, sizeof(out), (u_char *)data, size);
+  ndpi_hex2bin(out2, sizeof(out2), out, len);
 
   return 0;
 }

@@ -36,6 +36,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   char cfg_param[32];
   u_int64_t cat_userdata = 0;
   u_int16_t unused1, unused2;
+  ndpi_master_app_protocol proto1, proto2;
 
   /* To allow memory allocation failures */
   fuzz_set_alloc_callbacks_and_seed(size);
@@ -645,6 +646,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   ndpi_fpc_confidence_get_name(static_cast<ndpi_fpc_confidence_t>(fuzzed_data.ConsumeIntegral<u_int8_t>()));
   ndpi_get_proto_breed_name(static_cast<ndpi_protocol_breed_t>(fuzzed_data.ConsumeIntegral<u_int8_t>()));
   ndpi_get_l4_proto_name(static_cast<ndpi_l4_proto_info>(fuzzed_data.ConsumeIntegral<u_int8_t>()));
+  proto1.app_protocol = fuzzed_data.ConsumeIntegral<u_int16_t>();
+  proto1.master_protocol = fuzzed_data.ConsumeIntegral<u_int16_t>();
+  ndpi_is_proto_unknown(proto1);
+  proto2.app_protocol = fuzzed_data.ConsumeIntegral<u_int16_t>();
+  proto2.master_protocol = fuzzed_data.ConsumeIntegral<u_int16_t>();
+  ndpi_is_proto_equals(proto1, proto2, fuzzed_data.ConsumeBool());
 
   char buf2[16];
   ndpi_entropy2str(fuzzed_data.ConsumeFloatingPoint<float>(), fuzzed_data.ConsumeBool() ? buf2 : NULL, sizeof(buf2));
