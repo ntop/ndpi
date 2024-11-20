@@ -29,7 +29,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 
   /* Let use this fuzzer to check also this simple function... */
-  ndpi_strlcpy(dst, (const char *)h, sizeof(dst), h_len);
+  if(fuzzed_data.ConsumeBool())
+    ndpi_strlcpy(dst, (const char *)h, sizeof(dst), h_len);
+  else
+    ndpi_strlcpy(NULL, (const char *)h, 0, h_len);
 
   return 0;
 }
