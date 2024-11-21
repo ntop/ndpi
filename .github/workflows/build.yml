@@ -115,22 +115,7 @@ jobs:
             maxminddb: "--with-maxminddb"
             msan: "--with-sanitizer"
             nBPF: ""
-          - compiler: "clang-17" # "Newest" clang easily available. See also below...
-            ar: "llvm-ar-17"
-            ranlib: "llvm-ranlib-17"
-            os: ubuntu-24.04
-            arch: "x86_64"
-            gcrypt: ""
-            pcre: "--with-pcre2"
-            maxminddb: "--with-maxminddb"
-            msan: "--with-sanitizer"
-            nBPF: ""
-            lto_gold_linker: "--with-lto-and-gold-linker"
-          - compiler: "clang-18" # "The latest clang version easily available should be 18,
-                                 # but it is buggy on ubuntu-24.04 with LTO and Gold linker:
-                                 # https://github.com/llvm/llvm-project/issues/87553
-                                 # https://bugs.launchpad.net/ubuntu/+source/llvm-toolchain-18/+bug/2064187
-                                 # Waiting for a fix...
+          - compiler: "clang-18" # "Newest" clang easily available. See also below...
             ar: "llvm-ar-18"
             ranlib: "llvm-ranlib-18"
             os: ubuntu-24.04
@@ -140,7 +125,7 @@ jobs:
             maxminddb: "--with-maxminddb"
             msan: "--with-sanitizer"
             nBPF: ""
-            lto_gold_linker: ""
+            lto_gold_linker: "--with-lto-and-gold-linker"
           - compiler: "cc"
             os: ubuntu-latest
             arch: "x86_64"
@@ -279,12 +264,8 @@ jobs:
       - name: Installing MacOS prerequisites
         if: startsWith(matrix.os, 'macOS') && startsWith(matrix.arch, 'x86_64')
         run: |
-          # A workaround for "The `brew link` step did not complete successfully" error.
-          # See https://github.com/Homebrew/homebrew-core/issues/165793#issuecomment-1991817938
-          find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
-          sudo rm -rf /Library/Frameworks/Python.framework/
-          brew install --force python3 && brew unlink python3 && brew unlink python3 && brew link --overwrite python3
-          brew install coreutils wdiff colordiff autoconf automake libtool pkg-config gettext json-c rrdtool parallel
+          # Avoid (re)installing pkg-config. See: https://github.com/actions/runner-images/issues/10984
+          brew install coreutils wdiff colordiff autoconf automake libtool gettext json-c rrdtool parallel
       - name: Install MacOS Prerequisites (libgcrypt)
         if: startsWith(matrix.os, 'macOS') && startsWith(matrix.arch, 'x86_64') && startsWith(matrix.gcrypt, '--with-local-libgcrypt')
         run: |
