@@ -8739,6 +8739,32 @@ static void fpc_check_eval(struct ndpi_detection_module_struct *ndpi_str,
 
 /* ********************************************************************************* */
 
+static char* ndpi_expected_ports_str(u_int16_t *default_ports, char *str, u_int str_len) {
+  str[0] = '\0';
+
+  if(default_ports[0] != 0) {
+    u_int8_t i, offset;
+
+    offset = snprintf(str, str_len, "Expected on port ");
+
+    for(i=0; (i<MAX_DEFAULT_PORTS) && (default_ports[i] != 0); i++) {
+      int rc = snprintf(&str[offset], str_len-offset, "%s%u",
+			(i > 0) ? "," : "", default_ports[i]);
+
+      if(rc > 0)
+	offset += rc;
+      else
+	break;
+    }
+
+    str[offset] = '\0';
+  }
+
+  return(str);
+}
+
+/* ********************************************************************************* */
+
 static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detection_module_struct *ndpi_str,
 							    struct ndpi_flow_struct *flow,
 							    const unsigned char *packet_data,
@@ -8948,24 +8974,11 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
 
 	  if((r == NULL)
 	     || ((r->proto->protoId != ret.proto.app_protocol) && (r->proto->protoId != ret.proto.master_protocol))) {
-	    if(default_ports[0] != 0) {
-		char str[64];
-		u_int8_t i, offset;
+	    if(default_ports && (default_ports[0] != 0)) {
+	      char str[64];
 
-		offset = snprintf(str, sizeof(str), "Expected on port ");
-
-		for(i=0; (i<MAX_DEFAULT_PORTS) && (default_ports[i] != 0); i++) {
-		  int rc = snprintf(&str[offset], sizeof(str)-offset, "%s%u",
-				    (i > 0) ? "," : "", default_ports[i]);
-
-		  if(rc > 0)
-		    offset += rc;
-		  else
-		    break;
-		}
-
-		str[offset] = '\0';
-		ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT, str);
+	      ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
+			    ndpi_expected_ports_str(default_ports, str, sizeof(str)));
 	    }
 	  }
 	}
@@ -8996,9 +9009,25 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
 								    ntohs(flow->c_port), ntohs(flow->s_port));
 
 	if((r == NULL)
-	   || ((r->proto->protoId != ret.proto.app_protocol) && (r->proto->protoId != ret.proto.master_protocol))) {
-	  if(ret.proto.app_protocol != NDPI_PROTOCOL_FTP_DATA)
-	    ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,NULL);
+	   || ((r->proto->protoId != ret.proto.app_protocol)
+	       && (r->proto->protoId != ret.proto.master_protocol))) {
+	  if(ret.proto.app_protocol != NDPI_PROTOCOL_FTP_DATA) {
+	    u_int16_t *default_ports;
+
+	    if(packet->udp)
+	      default_ports = ndpi_str->proto_defaults[ret.proto.master_protocol ? ret.proto.master_protocol : ret.proto.app_protocol].udp_default_ports;
+	    else if(packet->tcp)
+	      default_ports = ndpi_str->proto_defaults[ret.proto.master_protocol ? ret.proto.master_protocol : ret.proto.app_protocol].tcp_default_ports;
+	    else
+	      default_ports = NULL;
+	    
+	    if(default_ports && (default_ports[0] != 0)) {
+	      char str[64];
+	      
+	      ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
+			    ndpi_expected_ports_str(default_ports, str, sizeof(str)));
+	    }
+	  }
 	}
       }
     }
