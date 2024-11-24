@@ -1037,3 +1037,30 @@ References: `Main site <https://www.temu.com/>`_
 Taobao is a Chinese online shopping platform.
 
 References: `Main site <https://www.taobao.com/>`_
+
+
+.. _Proto 437:
+
+`NDPI_PROTOCOL_MIKROTIK`
+========================
+MikroTik Neighbor Discovery Protocol, is a protocol that allows us to find neighbor routers/switches which are compatible with the following neighboring protocols: MNDP: MikroTik Proprietary. CDP: Cisco Proprietary.
+
+References: `Main site <https://help.mikrotik.com/docs/spaces/ROS/pages/24805517/Neighbor+discovery/>`_
+
+
+.. _Proto 438:
+
+`NDPI_PROTOCOL_DICOM`
+=====================
+Digital Imaging and Communications in Medicine (DICOM) is a technical standard for the digital storage and transmission of medical images and related information.
+
+References: `Wikipwdia <https://en.wikipedia.org/wiki/DICOM/>`_
+
+
+.. _Proto 439:
+
+`NDPI_PROTOCOL_PARAMOUNTPLUS`
+=============================
+Paramount+ (formerly CBS All Access and 10 All Access in Australia until 2021) is an American subscription video on-demand over-the-top streaming service owned by Paramount Global.
+
+References: `Main site <https://www.paramountplus.com/>`_
