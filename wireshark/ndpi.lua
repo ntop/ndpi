@@ -1777,7 +1777,7 @@ function stun_dissector(tvb, pinfo, tree)
 		  protocol = ndpi_proto_whatsapp
 	       end
 	    end
-	    if stun_request_table[getstring(stun_request)] ~= 0 and protocol ~= stun_request_table[getstring(stun_request)] then
+	    if stun_request_table[getstring(stun_request)] ~= nil and protocol ~= stun_request_table[getstring(stun_request)] then
 	       protocol = stun_request_table[getstring(stun_request)]
 
 	    end
