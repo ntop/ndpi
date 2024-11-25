@@ -33,11 +33,13 @@ static struct os_fingerprint tcp_fps[] = {
     { "194_64_65535_d29295416479",  os_hint_macos       },
     { "194_64_65535_78dd6871cb6d",  os_hint_macos       },
     { "2_64_65535_d29295416479",    os_hint_macos       },
+    { "2_64_0_d29295416479",        os_hint_macos       },
+    { "2_64_65535_d29295416479",    os_hint_macos       },
     { "2_64_65535_dd5737e4fedb",    os_hint_macos       },
     { "2_64_65535_99a660d3e328",    os_hint_macos       },
     { "2_64_65535_78dd6871cb6d",    os_hint_macos       },
-    
-       
+    { "2_64_65535_09b18f059744",    os_hint_macos       },
+
     { NULL,                         os_hint_unknown     },
   };
 
