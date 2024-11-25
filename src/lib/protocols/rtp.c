@@ -40,7 +40,7 @@ int is_valid_rtp_payload_type(uint8_t type)
   return 1;
 }
 
-u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_type, u_int16_t sub_proto)
+u_int8_t rtp_get_stream_type(u_int8_t payloadType, u_int8_t *s_type, u_int16_t sub_proto)
 {
   /* General, from IANA */
   switch(payloadType) {
@@ -61,7 +61,7 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   case 16: /* DVI4 */
   case 17: /* DVI4 */
   case 18: /* G729 */
-    *s_type = ndpi_multimedia_audio_flow;
+    *s_type |= ndpi_multimedia_audio_flow;
     return(1);
 
   case 25: /* CelB */
@@ -70,7 +70,7 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   case 31: /* H261 */
   case 32: /* MPV */
   case 34: /* H263 */
-    *s_type = ndpi_multimedia_video_flow;
+    *s_type |= ndpi_multimedia_video_flow;
     return(1);
   }
 
@@ -87,18 +87,18 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
     case 116: /* G.726 */
     case 117: /* G.722 */
     case 118: /* Comfort Noise Wideband */
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 34: /* H.263 [MS-H26XPF] */
     case 121: /* RT Video */
     case 122: /* H.264 [MS-H264PF] */
     case 123: /* H.264 FEC [MS-H264PF] */
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
@@ -114,16 +114,16 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   if(sub_proto == NDPI_PROTOCOL_GOOGLE_CALL) {
     switch(payloadType) {
     case 111:
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 96:
     case 100:
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
@@ -131,16 +131,16 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   if(sub_proto == NDPI_PROTOCOL_WHATSAPP_CALL) {
     switch(payloadType) {
     case 120:
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 97:
     case 102:
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
@@ -151,15 +151,15 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
     case 97:
     case 101:
     case 109:
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 127:
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
@@ -167,15 +167,15 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   if(sub_proto == NDPI_PROTOCOL_TELEGRAM_VOIP) {
     switch(payloadType) {
     case 111:
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 106:
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
@@ -183,20 +183,20 @@ u_int8_t rtp_get_stream_type(u_int8_t payloadType, ndpi_multimedia_flow_type *s_
   if(sub_proto == NDPI_PROTOCOL_SIGNAL_VOIP) {
     switch(payloadType) {
     case 102:
-      *s_type = ndpi_multimedia_audio_flow;
+      *s_type |= ndpi_multimedia_audio_flow;
       return(1);
 
     case 120:
-      *s_type = ndpi_multimedia_video_flow;
+      *s_type |= ndpi_multimedia_video_flow;
       return(1);
 
     default:
-      *s_type = ndpi_multimedia_unknown_flow;
+      *s_type |= ndpi_multimedia_unknown_flow;
       return(0);
     }
   }
 
-  *s_type = ndpi_multimedia_unknown_flow;
+  *s_type |= ndpi_multimedia_unknown_flow;
   return(0);
 }
 
@@ -324,7 +324,7 @@ static void ndpi_rtp_search(struct ndpi_detection_module_struct *ndpi_struct,
         NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
         NDPI_EXCLUDE_PROTO_EXT(ndpi_struct, flow, NDPI_PROTOCOL_RTCP);
       } else {
-        rtp_get_stream_type(payload[1] & 0x7F, &flow->flow_multimedia_type, NDPI_PROTOCOL_UNKNOWN);
+        rtp_get_stream_type(payload[1] & 0x7F, &flow->flow_multimedia_types, NDPI_PROTOCOL_UNKNOWN);
 
         NDPI_LOG_INFO(ndpi_struct, "Found RTP\n");
         ndpi_int_rtp_add_connection(ndpi_struct, flow, NDPI_PROTOCOL_RTP);

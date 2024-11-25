@@ -631,6 +631,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   char buf[8]; /* Too short in same cases... */
   if(fuzzed_data.ConsumeBool()) {
     ndpi_ssl_version2str(buf, sizeof(buf), fuzzed_data.ConsumeIntegral<u_int16_t>(), &unused);
+    if(fuzzed_data.ConsumeBool())
+      ndpi_multimedia_flowtype2str(buf, sizeof(buf),  static_cast<ndpi_multimedia_flow_type>(fuzzed_data.ConsumeIntegral<u_int8_t>()));
+    else
+      ndpi_multimedia_flowtype2str(NULL, 0,  static_cast<ndpi_multimedia_flow_type>(fuzzed_data.ConsumeIntegral<u_int8_t>()));
     ndpi_get_ip_proto_name(fuzzed_data.ConsumeIntegral<u_int8_t>(), buf, sizeof(buf));
   } else {
     ndpi_ssl_version2str(NULL, 0, fuzzed_data.ConsumeIntegral<u_int16_t>(), &unused);

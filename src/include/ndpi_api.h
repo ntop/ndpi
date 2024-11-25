@@ -1133,6 +1133,7 @@ extern "C" {
                                  ndpi_protocol const * const l7_protocol);
   char* ndpi_ssl_version2str(char *buf, int buf_len,
                              u_int16_t version, u_int8_t *unknown_tls_version);
+  char *ndpi_multimedia_flowtype2str(char *buf, int buf_len, u_int8_t m_types);
   char *ndpi_quic_version2str(char *buf, int buf_len, u_int32_t version);
   int ndpi_netbios_name_interpret(u_char *in, u_int in_len, u_char *out, u_int out_len);
   void ndpi_patchIPv6Address(char *str);

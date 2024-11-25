@@ -72,10 +72,10 @@ typedef enum {
 } ndpi_log_level_t;
 
 typedef enum {
-  ndpi_multimedia_unknown_flow = 0,
-  ndpi_multimedia_audio_flow,
-  ndpi_multimedia_video_flow,
-  ndpi_multimedia_screen_sharing_flow,
+  ndpi_multimedia_unknown_flow          = 0x00,
+  ndpi_multimedia_audio_flow            = 0x01,
+  ndpi_multimedia_video_flow            = 0x02,
+  ndpi_multimedia_screen_sharing_flow   = 0x04,
 } ndpi_multimedia_flow_type;
 
 typedef enum {
@@ -1358,7 +1358,7 @@ struct ndpi_flow_struct {
     char *username, *password;
   } http;
 
-  ndpi_multimedia_flow_type flow_multimedia_type;
+  u_int8_t flow_multimedia_types;
 
   /*
      Put outside of the union to avoid issues in case the protocol
