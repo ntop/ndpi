@@ -3467,31 +3467,6 @@ struct ndpi_detection_module_struct *ndpi_init_detection_module(struct ndpi_glob
   ndpi_str->risky_domain_automa.ac_automa = NULL; /* Initialized on demand */
   ndpi_str->trusted_issuer_dn = NULL;
 
-#ifdef USE_LEGACY_AHO_CORASICK
-  ndpi_str->custom_categories.hostnames.ac_automa = ac_automata_init(ac_domain_match_handler);
-  if(!ndpi_str->custom_categories.hostnames.ac_automa) {
-    ndpi_exit_detection_module(ndpi_str);
-    return(NULL);
-  }
-
-  ndpi_str->custom_categories.hostnames_shadow.ac_automa = ac_automata_init(ac_domain_match_handler);
-  if(!ndpi_str->custom_categories.hostnames_shadow.ac_automa) {
-    ndpi_exit_detection_module(ndpi_str);
-    return(NULL);
-  }
-
-  if(ndpi_str->custom_categories.hostnames.ac_automa)
-    ac_automata_feature(ndpi_str->custom_categories.hostnames.ac_automa, AC_FEATURE_LC);
-
-  if(ndpi_str->custom_categories.hostnames_shadow.ac_automa)
-    ac_automata_feature(ndpi_str->custom_categories.hostnames_shadow.ac_automa, AC_FEATURE_LC);
-
-  if(ndpi_str->custom_categories.hostnames.ac_automa)
-    ac_automata_name(ndpi_str->custom_categories.hostnames.ac_automa, "ccat", 0);
-
-  if(ndpi_str->custom_categories.hostnames_shadow.ac_automa)
-    ac_automata_name(ndpi_str->custom_categories.hostnames_shadow.ac_automa, "ccat_sh", 0);
-#else
   ndpi_str->custom_categories.sc_hostnames        = ndpi_domain_classify_alloc();
   if(!ndpi_str->custom_categories.sc_hostnames) {
     ndpi_exit_detection_module(ndpi_str);
@@ -3502,7 +3477,6 @@ struct ndpi_detection_module_struct *ndpi_init_detection_module(struct ndpi_glob
     ndpi_exit_detection_module(ndpi_str);
     return(NULL);
   }
-#endif
 
   ndpi_str->custom_categories.ipAddresses = ndpi_patricia_new(32 /* IPv4 */);
   ndpi_str->custom_categories.ipAddresses_shadow = ndpi_patricia_new(32 /* IPv4 */);
@@ -4193,13 +4167,6 @@ int ndpi_match_string_value(void *automa, char *string_to_match,
 int ndpi_match_custom_category(struct ndpi_detection_module_struct *ndpi_str,
 			       char *name, u_int name_len,
                                ndpi_protocol_category_t *category) {
-#ifdef USE_LEGACY_AHO_CORASICK
-  u_int32_t id;
-  int rc = ndpi_match_string_common(ndpi_str->custom_categories.hostnames.ac_automa,
-				    name, name_len, &id, category, NULL);
-  if(rc < 0) return rc;
-  return(id != NDPI_PROTOCOL_UNKNOWN ? 0 : -1);
-#else
   char buf[128];
   u_int16_t class_id;
   u_int max_len = sizeof(buf)-1;
@@ -4217,7 +4184,6 @@ int ndpi_match_custom_category(struct ndpi_detection_module_struct *ndpi_str,
     return(0);
   } else
     return(-1); /* Not found */
-#endif
 }
 
 /* *********************************************** */
@@ -4353,18 +4319,8 @@ void ndpi_exit_detection_module(struct ndpi_detection_module_struct *ndpi_str) {
     if(ndpi_str->malicious_sha1_hashmap != NULL)
       ndpi_hash_free(&ndpi_str->malicious_sha1_hashmap);
 
-#ifdef USE_LEGACY_AHO_CORASICK
-    if(ndpi_str->custom_categories.hostnames.ac_automa != NULL)
-      ac_automata_release((AC_AUTOMATA_t *) ndpi_str->custom_categories.hostnames.ac_automa,
-			  1 /* free patterns strings memory */);
-
-    if(ndpi_str->custom_categories.hostnames_shadow.ac_automa != NULL)
-      ac_automata_release((AC_AUTOMATA_t *) ndpi_str->custom_categories.hostnames_shadow.ac_automa,
-			  1 /* free patterns strings memory */);
-#else
     ndpi_domain_classify_free(ndpi_str->custom_categories.sc_hostnames_shadow);
     ndpi_domain_classify_free(ndpi_str->custom_categories.sc_hostnames);
-#endif
 
     if(ndpi_str->custom_categories.ipAddresses != NULL)
       ndpi_patricia_destroy((ndpi_patricia_tree_t *) ndpi_str->custom_categories.ipAddresses, free_ptree_data);
@@ -8231,23 +8187,11 @@ int ndpi_load_ip_category(struct ndpi_detection_module_struct *ndpi_str,
 int ndpi_load_hostname_category(struct ndpi_detection_module_struct *ndpi_str,
 				const char *name_to_add,
 				ndpi_protocol_category_t category) {
-#ifdef USE_LEGACY_AHO_CORASICK
-  if(ndpi_str->custom_categories.hostnames_shadow.ac_automa == NULL)
-    return(-1);
-
-  if(name_to_add == NULL)
-    return(-1);
-
-  return ndpi_string_to_automa(ndpi_str,
-			       (AC_AUTOMATA_t *)ndpi_str->custom_categories.hostnames_shadow.ac_automa,
-			       name_to_add,category,category, 0, 0, 1); /* at_end */
-#else
   if(ndpi_str->custom_categories.sc_hostnames_shadow == NULL)
     return(-1);
 
   return(ndpi_domain_classify_add(ndpi_str, ndpi_str->custom_categories.sc_hostnames_shadow,
 				  (u_int16_t)category, (char*)name_to_add) ? 0 : -1);
-#endif
 }
 
 /* ********************************************************************************* */
@@ -8288,29 +8232,9 @@ int ndpi_enable_loaded_categories(struct ndpi_detection_module_struct *ndpi_str)
     ndpi_load_category(ndpi_str, category_match[i].string_to_match,
 		       category_match[i].protocol_category, built_in);
 
-#ifdef USE_LEGACY_AHO_CORASICK
-  /* Free */
-  ac_automata_release((AC_AUTOMATA_t *) ndpi_str->custom_categories.hostnames.ac_automa,
-		      1 /* free patterns strings memory */);
-
-  /* Finalize */
-  if(ndpi_str->custom_categories.hostnames_shadow.ac_automa)
-    ac_automata_finalize((AC_AUTOMATA_t *) ndpi_str->custom_categories.hostnames_shadow.ac_automa);
-
-  /* Swap */
-  ndpi_str->custom_categories.hostnames.ac_automa = ndpi_str->custom_categories.hostnames_shadow.ac_automa;
-
-  /* Realloc */
-  ndpi_str->custom_categories.hostnames_shadow.ac_automa = ac_automata_init(ac_domain_match_handler);
-  if(ndpi_str->custom_categories.hostnames_shadow.ac_automa) {
-    ac_automata_feature(ndpi_str->custom_categories.hostnames_shadow.ac_automa,AC_FEATURE_LC);
-    ac_automata_name(ndpi_str->custom_categories.hostnames_shadow.ac_automa,"ccat_sh",0);
-  }
-#else
   ndpi_domain_classify_free(ndpi_str->custom_categories.sc_hostnames);
   ndpi_str->custom_categories.sc_hostnames        = ndpi_str->custom_categories.sc_hostnames_shadow;
   ndpi_str->custom_categories.sc_hostnames_shadow = ndpi_domain_classify_alloc();
-#endif
 
   if(ndpi_str->custom_categories.ipAddresses != NULL)
     ndpi_patricia_destroy((ndpi_patricia_tree_t *) ndpi_str->custom_categories.ipAddresses, free_ptree_data);

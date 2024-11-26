@@ -41,8 +41,6 @@
 /* Used by both nDPI core and patricia code under third-party */
 #include "ndpi_patricia_typedefs.h"
 
-// #define USE_LEGACY_AHO_CORASICK
-
 #ifndef NDPI_CFFI_PREPROCESSING
 #ifndef u_char
 typedef unsigned char u_char;
