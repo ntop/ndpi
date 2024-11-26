@@ -93,6 +93,12 @@ static char* domain_to_check = NULL;
 static char* ip_port_to_check = NULL;
 static u_int8_t ignore_vlanid = 0;
 FILE *fingerprint_fp         = NULL; /**< for flow fingerprint export */
+#ifdef __linux__
+static char *bind_mask = NULL;
+#endif
+#define MAX_FARGS 64
+static char* fargv[MAX_FARGS];
+static int fargc = 0;
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../nDPI-custom/ndpiReader_defs.c"
@@ -770,6 +776,7 @@ static void help(u_int long_help) {
 #define OPTLONG_VALUE_CFG		3000
 #define OPTLONG_VALUE_OPENVPN_HEURISTICS	3001
 #define OPTLONG_VALUE_TLS_HEURISTICS		3002
+#define OPTLONG_VALUE_CONF                      3003
 
 static struct option longopts[] = {
   /* mandatory extcap options */
@@ -817,6 +824,7 @@ static struct option longopts[] = {
   { "cfg", required_argument, NULL, OPTLONG_VALUE_CFG},
   { "openvpn_heuristics", no_argument, NULL, OPTLONG_VALUE_OPENVPN_HEURISTICS},
   { "tls_heuristics", no_argument, NULL, OPTLONG_VALUE_TLS_HEURISTICS},
+  { "conf", required_argument, NULL, OPTLONG_VALUE_CONF},
 
   {0, 0, 0, 0}
 };
@@ -1083,32 +1091,12 @@ int reader_add_cfg(char *proto, char *param, char *value, int dup)
 
 /* ********************************** */
 
-/**
- * @brief Option parser
- */
-static void parseOptions(int argc, char **argv) {
+
+static void parse_parameters(int argc, char **argv)
+{
   int option_idx = 0;
   int opt;
-#ifndef USE_DPDK
-  char *__pcap_file = NULL;
-  int thread_id;
-#ifdef __linux__
-  char *bind_mask = NULL;
-  u_int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
-#endif
   char *s1, *s2, *s3;
-
-#ifdef USE_DPDK
-  {
-    int ret = rte_eal_init(argc, argv);
-
-    if(ret < 0)
-      rte_exit(EXIT_FAILURE, "Error with EAL initialization\n");
-
-    argc -= ret, argv += ret;
-  }
-#endif
 
   while((opt = getopt_long(argc, argv, longopts_short, longopts, &option_idx)) != EOF) {
 #ifdef DEBUG_TRACE
@@ -1152,8 +1140,8 @@ static void parseOptions(int argc, char **argv) {
       }
 
       if(reader_add_cfg("tls", "metadata.ja4r_fingerprint", "1", 1) == -1) {
-	printf("Unable to enable JA4r fingerprints\n");
-	exit(1);
+        printf("Unable to enable JA4r fingerprints\n");
+        exit(1);
       }
 
       do_load_lists = true;
@@ -1224,10 +1212,10 @@ static void parseOptions(int argc, char **argv) {
     case 'C':
       errno = 0;
       if((csv_fp = fopen(optarg, "w")) == NULL)
-	{
-	  printf("Unable to write on CSV file %s: %s\n", optarg, strerror(errno));
-	  exit(1);
-	}
+        {
+          printf("Unable to write on CSV file %s: %s\n", optarg, strerror(errno));
+          exit(1);
+        }
       break;
 
     case 'r':
@@ -1253,58 +1241,58 @@ static void parseOptions(int argc, char **argv) {
 
     case 'V':
       {
-	char buf[12];
-	int log_level;
-	const char *errstrp;
+        char buf[12];
+        int log_level;
+        const char *errstrp;
 
-	/* (Internals) log levels are 0-3, but ndpiReader allows 0-4, where with 4
-	   we also enable all protocols */
-	log_level = ndpi_strtonum(optarg, NDPI_LOG_ERROR, NDPI_LOG_DEBUG_EXTRA + 1, &errstrp, 10);
-	if(errstrp != NULL) {
-	  printf("Invalid log level %s: %s\n", optarg, errstrp);
-	  exit(1);
-	}
-	if(log_level > NDPI_LOG_DEBUG_EXTRA) {
-	  log_level = NDPI_LOG_DEBUG_EXTRA;
-	  if(reader_add_cfg("all", "log", "enable", 1) == 1) {
-	    printf("Invalid cfg [num:%d/%d]\n", num_cfgs, MAX_NUM_CFGS);
-	    exit(1);
-	  }
-	}
-	snprintf(buf, sizeof(buf), "%d", log_level);
-	if(reader_add_cfg(NULL, "log.level", buf, 1) == 1) {
-	  printf("Invalid log level [%s] [num:%d/%d]\n", buf, num_cfgs, MAX_NUM_CFGS);
-	  exit(1);
-	}
-	reader_log_level = log_level;
-	break;
+        /* (Internals) log levels are 0-3, but ndpiReader allows 0-4, where with 4
+           we also enable all protocols */
+        log_level = ndpi_strtonum(optarg, NDPI_LOG_ERROR, NDPI_LOG_DEBUG_EXTRA + 1, &errstrp, 10);
+        if(errstrp != NULL) {
+          printf("Invalid log level %s: %s\n", optarg, errstrp);
+          exit(1);
+        }
+        if(log_level > NDPI_LOG_DEBUG_EXTRA) {
+          log_level = NDPI_LOG_DEBUG_EXTRA;
+          if(reader_add_cfg("all", "log", "enable", 1) == 1) {
+            printf("Invalid cfg [num:%d/%d]\n", num_cfgs, MAX_NUM_CFGS);
+            exit(1);
+          }
+        }
+        snprintf(buf, sizeof(buf), "%d", log_level);
+        if(reader_add_cfg(NULL, "log.level", buf, 1) == 1) {
+          printf("Invalid log level [%s] [num:%d/%d]\n", buf, num_cfgs, MAX_NUM_CFGS);
+          exit(1);
+        }
+        reader_log_level = log_level;
+        break;
       }
 
     case 'u':
       {
-	char *n;
-	char *str = ndpi_strdup(optarg);
-	int inverted_logic;
+        char *n;
+        char *str = ndpi_strdup(optarg);
+        int inverted_logic;
 
-	/* Reset any previous call to this knob */
-	if(reader_add_cfg("all", "log", "disable", 1) == 1) {
-	  printf("Invalid cfg [num:%d/%d]\n", num_cfgs, MAX_NUM_CFGS);
-	  exit(1);
-	}
+        /* Reset any previous call to this knob */
+        if(reader_add_cfg("all", "log", "disable", 1) == 1) {
+          printf("Invalid cfg [num:%d/%d]\n", num_cfgs, MAX_NUM_CFGS);
+          exit(1);
+        }
 
-	for(n = strtok(str, ","); n && *n; n = strtok(NULL, ",")) {
-	  inverted_logic = 0;
-	  if(*n == '-') {
-	    inverted_logic = 1;
-	    n++;
-	  }
-	  if(reader_add_cfg(n, "log", inverted_logic ? "disable" : "enable", 1) == 1) {
-	    printf("Invalid parameter [%s] [num:%d/%d]\n", n, num_cfgs, MAX_NUM_CFGS);
-	    exit(1);
-	  }
-	}
-	ndpi_free(str);
-	break;
+        for(n = strtok(str, ","); n && *n; n = strtok(NULL, ",")) {
+          inverted_logic = 0;
+          if(*n == '-') {
+            inverted_logic = 1;
+            n++;
+          }
+          if(reader_add_cfg(n, "log", inverted_logic ? "disable" : "enable", 1) == 1) {
+            printf("Invalid parameter [%s] [num:%d/%d]\n", n, num_cfgs, MAX_NUM_CFGS);
+            exit(1);
+          }
+        }
+        ndpi_free(str);
+        break;
       }
 
     case 'B':
@@ -1359,23 +1347,23 @@ static void parseOptions(int argc, char **argv) {
     case 'k':
       errno = 0;
       if((serialization_fp = fopen(optarg, "w")) == NULL)
-	{
-	  printf("Unable to write on serialization file %s: %s\n", optarg, strerror(errno));
-	  exit(1);
-	}
+        {
+          printf("Unable to write on serialization file %s: %s\n", optarg, strerror(errno));
+          exit(1);
+        }
       break;
 
     case 'K':
       if (strcasecmp(optarg, "tlv") == 0 && strlen(optarg) == 3)
-	{
-	  serialization_format = ndpi_serialization_format_tlv;
-	} else if (strcasecmp(optarg, "csv") == 0 && strlen(optarg) == 3)
-	{
-	  serialization_format = ndpi_serialization_format_csv;
-	} else if (strcasecmp(optarg, "json") == 0 && strlen(optarg) == 4)
-	{
-	  serialization_format = ndpi_serialization_format_json;
-	} else {
+        {
+          serialization_format = ndpi_serialization_format_tlv;
+        } else if (strcasecmp(optarg, "csv") == 0 && strlen(optarg) == 3)
+        {
+          serialization_format = ndpi_serialization_format_csv;
+        } else if (strcasecmp(optarg, "json") == 0 && strlen(optarg) == 4)
+        {
+          serialization_format = ndpi_serialization_format_json;
+        } else {
         printf("Unknown serialization format. Valid values are: tlv,csv,json\n");
         exit(1);
       }
@@ -1412,6 +1400,58 @@ static void parseOptions(int argc, char **argv) {
       }
       break;
 
+    case OPTLONG_VALUE_CONF:
+      {
+        FILE *fd;
+        char buffer[512], *line, *saveptr;
+        int len, saved_optind, initial_fargc;
+
+        fd = fopen(optarg, "r");
+        if(fd == NULL) {
+          printf("Error opening: %s\n", optarg);
+          exit(1);
+        }
+
+        if(fargc == 0) {
+          fargv[0] = ndpi_strdup(argv[0]);
+          fargc = 1;
+        }
+        initial_fargc = fargc;
+
+        while(1) {
+          line = fgets(buffer, sizeof(buffer), fd);
+
+          if(line == NULL)
+            break;
+
+          len = strlen(line);
+
+          if((len <= 1) || (line[0] == '#'))
+            continue;
+
+          line[len - 1] = '\0';
+
+          fargv[fargc] = ndpi_strdup(strtok_r(line, " \t", &saveptr));
+          while(fargc < MAX_FARGS && fargv[fargc] != NULL) {
+            fargc++;
+            fargv[fargc] = ndpi_strdup(strtok_r(NULL, " \t", &saveptr));
+          }
+          if(fargc == MAX_FARGS) {
+            printf("Too many arguments\n");
+            exit(1);
+          }
+        }
+
+        /* Recursive call to getopt_long() */
+        saved_optind = optind;
+        optind = initial_fargc;
+        parse_parameters(fargc, fargv);
+        optind = saved_optind;
+
+        fclose(fd);
+      }
+      break;
+
       /* Extcap */
     case '0':
       extcap_interfaces();
@@ -1441,18 +1481,18 @@ static void parseOptions(int argc, char **argv) {
 
     case '9':
       {
-	struct ndpi_detection_module_struct *ndpi_str = ndpi_init_detection_module(NULL);
-	NDPI_PROTOCOL_BITMASK all;
+        struct ndpi_detection_module_struct *ndpi_str = ndpi_init_detection_module(NULL);
+        NDPI_PROTOCOL_BITMASK all;
 
-	NDPI_BITMASK_SET_ALL(all);
-	ndpi_set_protocol_detection_bitmask2(ndpi_str, &all);
-	ndpi_finalize_initialization(ndpi_str);
+        NDPI_BITMASK_SET_ALL(all);
+        ndpi_set_protocol_detection_bitmask2(ndpi_str, &all);
+        ndpi_finalize_initialization(ndpi_str);
 
-	extcap_packet_filter = ndpi_get_proto_by_name(ndpi_str, optarg);
-	if(extcap_packet_filter == NDPI_PROTOCOL_UNKNOWN) extcap_packet_filter = atoi(optarg);
+        extcap_packet_filter = ndpi_get_proto_by_name(ndpi_str, optarg);
+        if(extcap_packet_filter == NDPI_PROTOCOL_UNKNOWN) extcap_packet_filter = atoi(optarg);
 
-	ndpi_exit_detection_module(ndpi_str);
-	break;
+        ndpi_exit_detection_module(ndpi_str);
+        break;
       }
 
     case 'T':
@@ -1475,7 +1515,7 @@ static void parseOptions(int argc, char **argv) {
 
     case OPTLONG_VALUE_CFG:
       if(parse_three_strings(optarg, &s1, &s2, &s3) == -1 ||
-	 reader_add_cfg(s1, s2, s3, 0) == -1) {
+         reader_add_cfg(s1, s2, s3, 0) == -1) {
         printf("Invalid parameter [%s] [num:%d/%d]\n", optarg, num_cfgs, MAX_NUM_CFGS);
         exit(1);
       }
@@ -1490,6 +1530,32 @@ static void parseOptions(int argc, char **argv) {
       break;
     }
   }
+}
+
+/**
+ * @brief Option parser
+ */
+static void parseOptions(int argc, char **argv) {
+#ifndef USE_DPDK
+  char *__pcap_file = NULL;
+  int thread_id;
+#ifdef __linux__
+  u_int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+#endif
+#endif
+
+#ifdef USE_DPDK
+  {
+    int ret = rte_eal_init(argc, argv);
+
+    if(ret < 0)
+      rte_exit(EXIT_FAILURE, "Error with EAL initialization\n");
+
+    argc -= ret, argv += ret;
+  }
+#endif
+
+  parse_parameters(argc, argv);
 
   if (serialization_fp == NULL && serialization_format != ndpi_serialization_format_unknown)
     {
@@ -6633,6 +6699,9 @@ int main(int argc, char **argv) {
     ndpi_free(cfgs[i].param);
     ndpi_free(cfgs[i].value);
   }
+
+  for(i = 0; i < fargc; i++)
+    ndpi_free(fargv[i]);
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../nDPI-custom/ndpiReader_term.c"

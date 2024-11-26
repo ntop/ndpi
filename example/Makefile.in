@@ -96,6 +96,7 @@ distdir:
 		-o -name '*.h' \
 		-o -name '*.py' \
 		-o -name '*.txt' \
+		-o -name '*.conf' \
 		-o -name '*.csv' | xargs -I'{}' cp '{}' '$(distdir)/{}'
 
 distclean: clean
