@@ -23,7 +23,11 @@ static struct os_fingerprint tcp_fps[] = {
     { "194_128_64240_29659b8d8574", os_hint_windows     },
     { "194_128_32768_e75eea53a4fd", os_hint_windows     },
     { "194_128_32768_84fee6d35dde", os_hint_windows     },
-    
+    { "194_128_64240_6bb88f5575fd", os_hint_windows     },
+    { "2_128_32768_5a9ef1c58d0b",   os_hint_windows     },
+    { "194_128_32768_5a9ef1c58d0b", os_hint_windows     },
+    { "2_128_65535_6bb88f5575fd",   os_hint_windows     },
+
     { "194_64_65535_15db81ff8b0d",  os_hint_ios_ipad_os },
     { "2_64_65535_41a9d5af7dd3",    os_hint_ios_ipad_os },
     { "194_64_65535_dd5737e4fedb",  os_hint_ios_ipad_os },
