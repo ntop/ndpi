@@ -1371,6 +1371,7 @@ struct ndpi_flow_struct {
   struct {
     u_int8_t maybe_dtls : 1, is_turn : 1, pad : 6;
     ndpi_address_port mapped_address, peer_address, relayed_address, response_origin, other_address;
+    u_int8_t num_mapped_address, num_relayed_address, num_non_stun_pkts, last_first_byte, num_stun_transitions; /* SRTP */
   } stun;
 
   struct {

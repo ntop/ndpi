@@ -84,6 +84,8 @@ static int is_subclassification_real_by_proto(u_int16_t proto)
   return 1;
 }
 
+/* ***************************************************** */
+
 static int is_subclassification_real(struct ndpi_flow_struct *flow)
 {
   /* No previous subclassification */
@@ -91,6 +93,8 @@ static int is_subclassification_real(struct ndpi_flow_struct *flow)
     return 0;
   return is_subclassification_real_by_proto(flow->detected_protocol_stack[0]);
 }
+
+/* ***************************************************** */
 
 static int is_new_subclassification_better(struct ndpi_detection_module_struct *ndpi_struct,
                                            struct ndpi_flow_struct *flow,
@@ -121,6 +125,7 @@ static int is_new_subclassification_better(struct ndpi_detection_module_struct *
   return 0;
 }
 
+/* ***************************************************** */
 
 static u_int16_t search_into_cache(struct ndpi_detection_module_struct *ndpi_struct,
 				   struct ndpi_flow_struct *flow)
@@ -167,6 +172,8 @@ static u_int16_t search_into_cache(struct ndpi_detection_module_struct *ndpi_str
   return NDPI_PROTOCOL_UNKNOWN;
 }
 
+/* ***************************************************** */
+
 static void add_to_cache(struct ndpi_detection_module_struct *ndpi_struct,
 			 struct ndpi_flow_struct *flow,
 			 u_int16_t app_proto)
@@ -186,6 +193,8 @@ static void add_to_cache(struct ndpi_detection_module_struct *ndpi_struct,
 #endif
   }
 }
+
+/* ***************************************************** */
 
 static void parse_ip_port_attribute(const u_int8_t *payload, u_int16_t payload_length,
                                     int off, u_int16_t real_len, ndpi_address_port *ap,
@@ -237,6 +246,8 @@ static void parse_ip_port_attribute(const u_int8_t *payload, u_int16_t payload_l
     }
   }
 }
+
+/* ***************************************************** */
 
 static void parse_xor_ip_port_attribute(struct ndpi_detection_module_struct *ndpi_struct,
                                         struct ndpi_flow_struct *flow,
@@ -354,7 +365,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
   u_int32_t transaction_id[3];
 
   if(payload_length < STUN_HDR_LEN)
-    return(-1);  
+    return(-1);
 
   /* Some really old/legacy stuff */
   if(strncmp((const char *)payload, "RSP/", 4) == 0 &&
@@ -400,7 +411,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
   if(packet->tcp) {
     if(msg_len + STUN_HDR_LEN > payload_length)
       return 0;
-    
+
     payload_length = msg_len + STUN_HDR_LEN;
   }
 
@@ -531,7 +542,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
       if(flow->host_server_name[0] == '\0') {
 	int i;
 	bool valid = true;
-	
+
         ndpi_hostname_sni_set(flow, payload + off + 4, ndpi_min(len, payload_length - off - 4), NDPI_HOSTNAME_NORM_ALL);
         NDPI_LOG_DBG(ndpi_struct, "Realm [%s]\n", flow->host_server_name);
 
@@ -604,6 +615,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
                                     &flow->stun.mapped_address,
                                     flow->monit ? &flow->monit->protos.dtls_stun_rtp.mapped_address : NULL,
                                     transaction_id, magic_cookie, 0);
+	flow->stun.num_mapped_address++;
       }
       break;
 
@@ -614,6 +626,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
                                     &flow->stun.relayed_address,
                                     flow->monit ? &flow->monit->protos.dtls_stun_rtp.relayed_address : NULL,
                                     transaction_id, magic_cookie, 0);
+	flow->stun.num_relayed_address++;
       }
       break;
 
@@ -634,18 +647,35 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
                                  struct ndpi_flow_struct *flow)
 {
   /* We want extra dissection for:
-     * sub-classification
-     * metadata extraction (*-ADDRESS) or looking for RTP
-       At the moment:
-       * it seems ZOOM doens't have any meaningful attributes
-       * we want (all) XOR-PEER-ADDRESS only for Telegram.
-         * for the other protocols, we stop after we have all metadata (if enabled)
-         * for some specific protocol, we might know that some attributes
-           are never used
+   * sub-classification
+   * metadata extraction (*-ADDRESS) or looking for RTP
+   At the moment:
+   * it seems ZOOM doens't have any meaningful attributes
+   * we want (all) XOR-PEER-ADDRESS only for Telegram.
+   * for the other protocols, we stop after we have all metadata (if enabled)
+   * for some specific protocol, we might know that some attributes
+   are never used
 
-     **After** extra dissection is ended, we might move to monitoring. Note that:
-     * classification doesn't change while in monitoring!
-  */
+   **After** extra dissection is ended, we might move to monitoring. Note that:
+   * classification doesn't change while in monitoring!
+   */
+
+  struct ndpi_packet_struct *packet = &ndpi_struct->packet;
+  bool is_stun_pkt = true;
+
+  if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1))
+    flow->stun.num_non_stun_pkts++, is_stun_pkt = false;
+
+  if(flow->packet_counter > 1) {
+    if((flow->stun.last_first_byte != 0x0) && (flow->stun.last_first_byte != 0x1)) {
+      if(is_stun_pkt)
+	flow->stun.num_stun_transitions++;
+    } else {
+      if(!is_stun_pkt)
+	flow->stun.num_stun_transitions++;
+    }
+  }
+  flow->stun.last_first_byte = packet->payload[0];
 
   if(flow->monitoring)
     return 1;
@@ -705,6 +735,8 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
   return 1;
 }
 
+/* ***************************************************** */
+
 static u_int32_t __get_master(struct ndpi_flow_struct *flow) {
 
   if(flow->detected_protocol_stack[1] != NDPI_PROTOCOL_UNKNOWN)
@@ -713,6 +745,8 @@ static u_int32_t __get_master(struct ndpi_flow_struct *flow) {
     return flow->detected_protocol_stack[0];
   return NDPI_PROTOCOL_STUN;
 }
+
+/* ***************************************************** */
 
 static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
                              struct ndpi_flow_struct *flow)
@@ -1082,13 +1116,12 @@ void switch_extra_dissection_to_stun(struct ndpi_detection_module_struct *ndpi_s
 
 /* ************************************************************ */
 
-
 static void ndpi_search_stun(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow)
 {
   struct ndpi_packet_struct *packet = &ndpi_struct->packet;
   u_int16_t app_proto;
   int rc;
-  
+
   NDPI_LOG_DBG(ndpi_struct, "search stun\n");
 
   app_proto = NDPI_PROTOCOL_UNKNOWN;
@@ -1101,7 +1134,7 @@ static void ndpi_search_stun(struct ndpi_detection_module_struct *ndpi_struct, s
   }
 
   rc = is_stun(ndpi_struct, flow, &app_proto);
-  
+
   if(rc == 1) {
     ndpi_int_stun_add_connection(ndpi_struct, flow, app_proto, __get_master(flow));
     return;
@@ -1111,6 +1144,8 @@ static void ndpi_search_stun(struct ndpi_detection_module_struct *ndpi_struct, s
   if(flow->packet_counter > 5)
     NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
 }
+
+/* ************************************************************ */
 
 void init_stun_dissector(struct ndpi_detection_module_struct *ndpi_struct, u_int32_t *id) {
   ndpi_set_bitmask_protocol_detection("STUN", ndpi_struct, *id,
