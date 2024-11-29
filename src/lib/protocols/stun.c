@@ -617,7 +617,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
                                     &flow->stun.mapped_address,
                                     flow->monit ? &flow->monit->protos.dtls_stun_rtp.mapped_address : NULL,
                                     transaction_id, magic_cookie, 0);
-	flow->stun.num_mapped_address++;
+	flow->stun.num_xor_mapped_addresses++;
       }
       break;
 
@@ -628,7 +628,7 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
                                     &flow->stun.relayed_address,
                                     flow->monit ? &flow->monit->protos.dtls_stun_rtp.relayed_address : NULL,
                                     transaction_id, magic_cookie, 0);
-	flow->stun.num_relayed_address++;
+	flow->stun.num_xor_relayed_addresses++;
       }
       break;
 
@@ -664,22 +664,13 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
    * classification doesn't change while in monitoring!
    */
 
-  if(packet->payload_packet_len > 0) {
-    bool is_stun_pkt = true;
+  if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1)) {
+    if(flow->stun.num_non_stun_pkt < 2) {
+      flow->stun.non_stun_pkt_len[flow->stun.num_non_stun_pkt++] = packet->payload_packet_len;
 
-    if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1))
-      flow->stun.num_non_stun_pkts++, is_stun_pkt = false;
-
-    if(flow->packet_counter > 1) {
-      if((flow->stun.last_first_byte != 0x0) && (flow->stun.last_first_byte != 0x1)) {
-        if(is_stun_pkt)
-          flow->stun.num_stun_transitions++;
-      } else {
-        if(!is_stun_pkt)
-          flow->stun.num_stun_transitions++;
-      }
-    }
-    flow->stun.last_first_byte = packet->payload[0];
+      if(flow->stun.num_non_stun_pkt == 2)
+	printf("%d %d\n", flow->stun.non_stun_pkt_len[0], flow->stun.non_stun_pkt_len[1]);
+    }    
   }
 
   if(flow->monitoring)

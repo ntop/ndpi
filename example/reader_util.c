@@ -1198,10 +1198,6 @@ static void process_ndpi_monitoring_info(struct ndpi_flow_info *flow) {
     add_to_address_port_list(&flow->stun.peer_address, &flow->ndpi_flow->monit->protos.dtls_stun_rtp.peer_address);
     add_to_address_port_list(&flow->stun.relayed_address, &flow->ndpi_flow->monit->protos.dtls_stun_rtp.relayed_address);
     add_to_address_port_list(&flow->stun.response_origin, &flow->ndpi_flow->monit->protos.dtls_stun_rtp.response_origin);
-    flow->stun.num_mapped_address = flow->ndpi_flow->stun.num_mapped_address;
-    flow->stun.num_relayed_address = flow->ndpi_flow->stun.num_relayed_address;
-    flow->stun.num_non_stun_pkts = flow->ndpi_flow->stun.num_non_stun_pkts;
-    flow->stun.num_stun_transitions = flow->ndpi_flow->stun.num_stun_transitions;
     flow->multimedia_flow_types |= flow->ndpi_flow->flow_multimedia_types;
   }
 }
@@ -1609,10 +1605,6 @@ void process_ndpi_collected_info(struct ndpi_workflow * workflow, struct ndpi_fl
     add_to_address_port_list(&flow->stun.relayed_address, &flow->ndpi_flow->stun.relayed_address);
     add_to_address_port_list(&flow->stun.response_origin, &flow->ndpi_flow->stun.response_origin);
     add_to_address_port_list(&flow->stun.other_address, &flow->ndpi_flow->stun.other_address);
-    flow->stun.num_mapped_address = flow->ndpi_flow->stun.num_mapped_address;
-    flow->stun.num_relayed_address = flow->ndpi_flow->stun.num_relayed_address;
-    flow->stun.num_non_stun_pkts = flow->ndpi_flow->stun.num_non_stun_pkts;
-    flow->stun.num_stun_transitions = flow->ndpi_flow->stun.num_stun_transitions;
   }
 
   flow->multimedia_flow_types |= flow->ndpi_flow->flow_multimedia_types;
