@@ -1064,3 +1064,12 @@ References: `Wikipwdia <https://en.wikipedia.org/wiki/DICOM/>`_
 Paramount+ (formerly CBS All Access and 10 All Access in Australia until 2021) is an American subscription video on-demand over-the-top streaming service owned by Paramount Global.
 
 References: `Main site <https://www.paramountplus.com/>`_
+
+
+.. _Proto 440:
+
+`NDPI_PROTOCOL_YANDEX_ALICE`
+=============================
+Yandex Alice is a voice assistant developed by Yandex, providing answers, performing tasks, and supporting smart home integration, similar to Alexa or Google Assistant.
+
+References: `Main site <https://yandex.ru/dev/dialogs/alice/doc/ru/protocol/>`_

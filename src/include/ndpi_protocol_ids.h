@@ -468,6 +468,7 @@ typedef enum {
   NDPI_PROTOCOL_MIKROTIK              = 437,
   NDPI_PROTOCOL_DICOM                 = 438, /* Hospital Protocol */
   NDPI_PROTOCOL_PARAMOUNTPLUS         = 439,
+  NDPI_PROTOCOL_YANDEX_ALICE          = 440,
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_protocol_ids.h"
