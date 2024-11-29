@@ -664,12 +664,16 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
    * classification doesn't change while in monitoring!
    */
 
-  if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1)) {
+  if(packet->udp
+     && (ntohs(packet->udp->source) == 3478)
+     && (packet->payload[0] != 0x0) && (packet->payload[0] != 0x1)) {
     if(flow->stun.num_non_stun_pkt < 2) {
       flow->stun.non_stun_pkt_len[flow->stun.num_non_stun_pkt++] = packet->payload_packet_len;
 
+#ifdef STUN_DEBUG
       if(flow->stun.num_non_stun_pkt == 2)
 	printf("%d %d\n", flow->stun.non_stun_pkt_len[0], flow->stun.non_stun_pkt_len[1]);
+#endif
     }    
   }
 
