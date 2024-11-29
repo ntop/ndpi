@@ -423,7 +423,8 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
 
   /* https://www.iana.org/assignments/stun-parameters/stun-parameters.xhtml */
   if(((msg_type & 0x3EEF) > 0x000B) &&
-     msg_type != 0x0800 && msg_type != 0x0801 && msg_type != 0x0802) {
+     msg_type != 0x0800 && msg_type != 0x0801 && msg_type != 0x0802 &&
+     msg_type != 0x0804 && msg_type != 0x0805) {
     NDPI_LOG_DBG(ndpi_struct, "Invalid msg_type = %04X\n", msg_type);
     return -1;
   }
@@ -461,7 +462,8 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
      is_monitoring_enabled(ndpi_struct, NDPI_PROTOCOL_STUN))
     flow->monit = ndpi_calloc(1, sizeof(struct ndpi_metadata_monitoring));
 
-  if(msg_type == 0x0800 || msg_type == 0x0801 || msg_type == 0x0802) {
+  if(msg_type == 0x0800 || msg_type == 0x0801 || msg_type == 0x0802 ||
+     msg_type == 0x0804 || msg_type == 0x0805) {
     *app_proto = NDPI_PROTOCOL_WHATSAPP_CALL;
     return 1;
   }
@@ -646,6 +648,8 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
 static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struct,
                                  struct ndpi_flow_struct *flow)
 {
+  struct ndpi_packet_struct *packet = &ndpi_struct->packet;
+
   /* We want extra dissection for:
    * sub-classification
    * metadata extraction (*-ADDRESS) or looking for RTP
@@ -660,22 +664,23 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
    * classification doesn't change while in monitoring!
    */
 
-  struct ndpi_packet_struct *packet = &ndpi_struct->packet;
-  bool is_stun_pkt = true;
+  if(packet->payload_packet_len > 0) {
+    bool is_stun_pkt = true;
 
-  if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1))
-    flow->stun.num_non_stun_pkts++, is_stun_pkt = false;
+    if((packet->payload[0] != 0x0) && (packet->payload[0] != 0x1))
+      flow->stun.num_non_stun_pkts++, is_stun_pkt = false;
 
-  if(flow->packet_counter > 1) {
-    if((flow->stun.last_first_byte != 0x0) && (flow->stun.last_first_byte != 0x1)) {
-      if(is_stun_pkt)
-	flow->stun.num_stun_transitions++;
-    } else {
-      if(!is_stun_pkt)
-	flow->stun.num_stun_transitions++;
+    if(flow->packet_counter > 1) {
+      if((flow->stun.last_first_byte != 0x0) && (flow->stun.last_first_byte != 0x1)) {
+        if(is_stun_pkt)
+          flow->stun.num_stun_transitions++;
+      } else {
+        if(!is_stun_pkt)
+          flow->stun.num_stun_transitions++;
+      }
     }
+    flow->stun.last_first_byte = packet->payload[0];
   }
-  flow->stun.last_first_byte = packet->payload[0];
 
   if(flow->monitoring)
     return 1;
@@ -754,7 +759,7 @@ static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
   struct ndpi_packet_struct *packet = &ndpi_struct->packet;
   int rtp_rtcp;
   u_int8_t first_byte;
-  u_int16_t app_proto = NDPI_PROTOCOL_UNKNOWN;
+  u_int16_t msg_type, app_proto = NDPI_PROTOCOL_UNKNOWN;
   u_int32_t unused;
   int first_dtls_pkt = 0;
   u_int16_t old_proto_stack[2] = {NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_UNKNOWN};
@@ -768,13 +773,18 @@ static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
      * multiple msg in the same TCP segment
      * same msg split across multiple segments */
 
-  if(packet->payload_packet_len == 0)
+  if(packet->payload_packet_len <= 1)
     return keep_extra_dissection(ndpi_struct, flow);
 
   first_byte = packet->payload[0];
+  msg_type = ntohs(*((u_int16_t *)&packet->payload[0]));
 
   /* RFC9443 */
-  if(first_byte <= 3) {
+  if(first_byte <= 3 ||
+     /* Whatsapp special case */
+     (flow->detected_protocol_stack[0] == NDPI_PROTOCOL_WHATSAPP_CALL &&
+      (msg_type == 0x0800 || msg_type == 0x0801 || msg_type == 0x0802 ||
+       msg_type == 0x0804 || msg_type == 0x0805))) {
     NDPI_LOG_DBG(ndpi_struct, "Still STUN\n");
     if(is_stun(ndpi_struct, flow, &app_proto) == 1) { /* To extract other metadata */
       if(is_new_subclassification_better(ndpi_struct, flow, app_proto)) {
