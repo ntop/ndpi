@@ -485,6 +485,14 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
     break;
   }
 
+  /* See https://support.signal.org/hc/en-us/articles/360007320291-Firewall-and-Internet-settings.
+     Since the check is quite weak, give time to other applications to kick in */
+  if(flow->packet_counter > 4 && !flow->stun.is_turn &&
+     !is_subclassification_real(flow) &&
+     (ntohs(flow->c_port) == 10000 || ntohs(flow->s_port) == 10000)) {
+     *app_proto = NDPI_PROTOCOL_SIGNAL_VOIP;
+  }
+
   off = STUN_HDR_LEN;
   while(off + 4 < payload_length) {
     u_int16_t attribute = ntohs(*((u_int16_t *)&payload[off]));
