@@ -667,6 +667,7 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
    * for the other protocols, we stop after we have all metadata (if enabled)
    * for some specific protocol, we might know that some attributes
    are never used
+   * if monitoring is enabled, keep looking for (S)RTP anyway
 
    **After** extra dissection is ended, we might move to monitoring. Note that:
    * classification doesn't change while in monitoring!
@@ -697,6 +698,11 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
   }
 
   if(!is_subclassification_real(flow))
+    return 1;
+
+  if(is_monitoring_enabled(ndpi_struct, NDPI_PROTOCOL_STUN) &&
+     (flow->detected_protocol_stack[1] != NDPI_PROTOCOL_SRTP &&
+      flow->detected_protocol_stack[1] != NDPI_PROTOCOL_DTLS))
     return 1;
 
   if(flow->detected_protocol_stack[0] == NDPI_PROTOCOL_TELEGRAM_VOIP &&
