@@ -597,6 +597,20 @@ int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
       *app_proto = NDPI_PROTOCOL_SKYPE_TEAMS_CALL;
       break;
 
+    case 0x8029: /* ICE-CONTROLLED */
+      if(current_pkt_from_client_to_server(ndpi_struct, flow))
+        flow->stun.is_client_controlling = 0;
+      else
+        flow->stun.is_client_controlling = 1;
+      break;
+
+    case 0x802A: /* ICE-CONTROLLING */
+      if(current_pkt_from_client_to_server(ndpi_struct, flow))
+        flow->stun.is_client_controlling = 1;
+      else
+        flow->stun.is_client_controlling = 0;
+      break;
+
     case 0xFF03:
       *app_proto = NDPI_PROTOCOL_GOOGLE_CALL;
       break;
@@ -928,7 +942,12 @@ static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
 
     rtp_rtcp = is_rtp_or_rtcp(ndpi_struct, packet->payload, packet->payload_packet_len, NULL);
     if(rtp_rtcp == IS_RTP) {
-      NDPI_LOG_DBG(ndpi_struct, "RTP (dir %d)\n", packet->packet_direction);
+
+      NDPI_LOG_DBG(ndpi_struct, "RTP (dir %d) [%d/%d]\n", packet->packet_direction,
+                                 flow->stun.rtp_counters[0], flow->stun.rtp_counters[1]);
+
+      flow->stun.rtp_counters[packet->packet_direction]++;
+
       NDPI_LOG_INFO(ndpi_struct, "Found RTP over STUN\n");
 
       rtp_get_stream_type(packet->payload[1] & 0x7F, &flow->flow_multimedia_types, flow->detected_protocol_stack[0]);
@@ -963,6 +982,7 @@ static int stun_search_again(struct ndpi_detection_module_struct *ndpi_struct,
       }
     } else if(rtp_rtcp == IS_RTCP) {
       NDPI_LOG_DBG(ndpi_struct, "RTCP\n");
+      flow->stun.rtcp_seen = 1;
     } else {
       NDPI_LOG_DBG(ndpi_struct, "Unexpected\n");
     }

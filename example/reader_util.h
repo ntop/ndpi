@@ -323,6 +323,7 @@ typedef struct ndpi_flow_info {
   struct {
     ndpi_address_port_list mapped_address, peer_address,
       relayed_address, response_origin, other_address;
+    u_int16_t rtp_counters[2];
   } stun;
   
   struct {
