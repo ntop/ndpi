@@ -2095,6 +2095,10 @@ static void printFlow(u_int32_t id, struct ndpi_flow_info *flow, u_int16_t threa
     print_ndpi_address_port_list_file(out, "Rsp Origin IP/Port", &flow->stun.response_origin);
     print_ndpi_address_port_list_file(out, "Other IP/Port", &flow->stun.other_address);
 
+    /* These counters make sense only if the flow entered the monitor state */
+    if(flow->num_packets_before_monitoring > 0)
+      fprintf(out, "[RTP packets: %d/%d]", flow->stun.rtp_counters[0], flow->stun.rtp_counters[1]);
+
     if(flow->http.url[0] != '\0') {
       ndpi_risk_enum risk = ndpi_validate_url(flow->http.url);
 

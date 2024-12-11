@@ -1369,10 +1369,11 @@ struct ndpi_flow_struct {
   } kerberos_buf;
 
   struct {
-    u_int8_t maybe_dtls : 1, is_turn : 1, pad : 6;
+    u_int8_t maybe_dtls:1, rtcp_seen:1, is_turn : 1, is_client_controlling:1, pad : 4;
     ndpi_address_port mapped_address, peer_address, relayed_address, response_origin, other_address;
     u_int8_t num_xor_relayed_addresses, num_xor_mapped_addresses;
     u_int8_t num_non_stun_pkt, non_stun_pkt_len[2];
+    u_int16_t rtp_counters[2];
   } stun;
 
   struct {
@@ -1628,8 +1629,8 @@ struct ndpi_flow_struct {
 _Static_assert(sizeof(((struct ndpi_flow_struct *)0)->protos) <= 264,
                "Size of the struct member protocols increased to more than 264 bytes, "
                "please check if this change is necessary.");
-_Static_assert(sizeof(struct ndpi_flow_struct) <= 1224,
-               "Size of the flow struct increased to more than 1224 bytes, "
+_Static_assert(sizeof(struct ndpi_flow_struct) <= 1232,
+               "Size of the flow struct increased to more than 1232 bytes, "
                "please check if this change is necessary.");
 #endif
 #endif
