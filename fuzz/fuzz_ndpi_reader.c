@@ -98,6 +98,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     ndpi_set_config(workflow->ndpi_struct, "tls", "dpi.heuristics", "0x07");
     ndpi_set_config(workflow->ndpi_struct, "tls", "dpi.heuristics.max_packets_extra_dissection", "40");
     ndpi_set_config(workflow->ndpi_struct, "stun", "monitoring", "1");
+    ndpi_set_config(workflow->ndpi_struct, NULL, "dpi.address_cache_size", "8192");
 
     ndpi_finalize_initialization(workflow->ndpi_struct);
 
