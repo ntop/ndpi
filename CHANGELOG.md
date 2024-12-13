@@ -57,6 +57,20 @@ Information about these new protocols is available on https://github.com/ntop/nD
 * Implemented algorithms for K-Nearest Neighbor Search (KNN)  (https://github.com/ntop/nDPI/pull/2554)
 * Added `ndpi_quick_encrypt()` and  `ndpi_quick_decrypt()` API calls (https://github.com/ntop/nDPI/pull/2568)
 
+## New configuration knobs
+
+Further information is available on https://github.com/ntop/nDPI/blob/dev/doc/configuration_parameters.md
+
+* `tls,subclassification`, `quic,subclassification`, `http,subclassification`: enable/disable subclassification (https://github.com/ntop/nDPI/pull/2533)
+* `openvpn,subclassification_by_ip`, `wiregurad,subclassification_by_ip`: enable/disable sub-classification using server IP. Useful to detect the specific VPN application/app (https://github.com/ntop/nDPI/commit/85ebda434d44f93e656ee5d3e52dc258134495d0)
+* `openvpn,dpi.heuristics`, `openvpn,dpi.heuristics.num_messages`: configure heuristics to detect OpenVPN flows (https://github.com/ntop/nDPI/pull/2547)
+* `dpi.guess_ip_before_port`: enable/disable guessing by IP first when guessing flow classifcation (https://github.com/ntop/nDPI/pull/2562)
+* `tls,dpi.heuristics`, `tls,dpi.heuristics.max_packets_extra_dissection`: configure heuristics to detect TLS flows (https://github.com/ntop/nDPI/pull/2553)
+* `flow.use_client_ip_in_guess`, `flow.use_client_port_in_guess`: configure guessing algorithm (https://github.com/ntop/nDPI/pull/2569)
+* `$PROTO_NAME,monitoring`: enable/disable monitoring state (https://github.com/ntop/nDPI/pull/2588)
+* `metadata.tcp_fingerprint`, `tls,metadata.ja4r_fingerprint`: enable/disable some fingerprints (https://github.com/ntop/nDPI/commit/6b6dad4fdb2e60cd2887f7d381bcab2387ba9507, https://github.com/ntop/nDPI/commit/42ded07139e41c54a9ae2c8875a9e2c56d50af41)
+* `sip,metadata.attribute.XXX`: enable/disable extraction of some SIP metadata (https://github.com/ntop/nDPI/pull/2614)
+
 ## Improvements
 
 * Fixed probing attempt risk that was creating false positives (https://github.com/ntop/nDPI/commit/fc4fb4d409c43af8b9bdbd9d0cf8d9b742408f26)
