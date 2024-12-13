@@ -675,12 +675,11 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
   /* We want extra dissection for:
    * sub-classification
    * metadata extraction (*-ADDRESS) or looking for RTP
-   At the moment:
+   * At the moment:
    * it seems ZOOM doens't have any meaningful attributes
    * we want (all) XOR-PEER-ADDRESS only for Telegram.
    * for the other protocols, we stop after we have all metadata (if enabled)
-   * for some specific protocol, we might know that some attributes
-   are never used
+   * for some specific protocol, we might know that some attributes are never used
    * if monitoring is enabled, keep looking for (S)RTP anyway
 
    **After** extra dissection is ended, we might move to monitoring. Note that:
@@ -698,7 +697,21 @@ static int keep_extra_dissection(struct ndpi_detection_module_struct *ndpi_struc
       if(flow->stun.num_non_stun_pkt == 2)
 	printf("%d %d\n", flow->stun.non_stun_pkt_len[0], flow->stun.non_stun_pkt_len[1]);
 #endif
-    }    
+    }
+  }
+
+  if(packet->payload_packet_len > 699) {
+    if(flow->detected_protocol_stack[0] == NDPI_PROTOCOL_TELEGRAM_VOIP) {
+      if((packet->payload[0] == 0x16) && (packet->payload[1] == 0xfe)
+	 && ((packet->payload[2] == 0xff) /* DTLS 1.0 */
+	     || (packet->payload[2] == 0xfd) /* DTLS 1.2 */ ))
+	; /* Skip DTLS */
+      else {
+	/* STUN or RTP */
+	/* This packet is too big to be audio: add video */
+	flow->flow_multimedia_types |= ndpi_multimedia_video_flow;
+      }
+    }
   }
 
   if(flow->monitoring)

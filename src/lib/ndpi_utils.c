@@ -1653,8 +1653,14 @@ int ndpi_dpi2json(struct ndpi_detection_module_struct *ndpi_struct,
     break;
 
   case NDPI_PROTOCOL_TLS:
+    ndpi_tls2json(serializer, flow);
+    break;
+
   case NDPI_PROTOCOL_DTLS:
     ndpi_tls2json(serializer, flow);
+#ifdef CUSTOM_NDPI_PROTOCOLS
+#include "../../../nDPI-custom/ndpi_utils_dpi2json_dtls.c"
+#endif
     break;
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
