@@ -48,7 +48,7 @@ Information about these new protocols is available on https://github.com/ntop/nD
 ## New features
 
 * Implemented JA4 raw fingerprint (https://github.com/ntop/nDPI/commit/42ded07139e41c54a9ae2c8875a9e2c56d50af41)
-* Add monitoring capability (for STUN flows) (https://github.com/ntop/nDPI/pull/2588)
+* Add monitoring capability (for STUN flows) (https://github.com/ntop/nDPI/pull/2588). See also: https://github.com/ntop/nDPI/blob/dev/doc/configuration_parameters.md
 * Implemented DNS host cache (https://github.com/ntop/nDPI/commit/55fa92490af593358a0b13ad1708ee9b14eec128)
 * Add a configuration file to `ndpiReader` (https://github.com/ntop/nDPI/pull/2629)
 
@@ -132,6 +132,7 @@ Further information is available on https://github.com/ntop/nDPI/blob/dev/doc/co
 * STUN/RTP: improve metadata extraction (https://github.com/ntop/nDPI/pull/2641)
 
 ## Misc
+
 * Fix `verify_dist_tarball.sh` after latest release (https://github.com/ntop/nDPI/pull/2519)
 * Removed unnecessary includes (https://github.com/ntop/nDPI/pull/2525)
 * Fixed initialization (https://github.com/ntop/nDPI/commit/e72255445c5654d1d1f932583fbf5f01c187e946, https://github.com/ntop/nDPI/commit/9b1736aa8960170d32eac7c954194eff9436fbbc)
@@ -186,6 +187,7 @@ Further information is available on https://github.com/ntop/nDPI/blob/dev/doc/co
 * Removed old USE_LEGACY_AHO_CORASICK code (https://github.com/ntop/nDPI/commit/170849f156fe7b803eb08f91722bfaa576f3084f)
 * Fix license typo (https://github.com/ntop/nDPI/pull/2638)
 * Update script to download Azure IP list ranges (https://github.com/ntop/nDPI/pull/2640)
+* Update all IPS lists (https://github.com/ntop/nDPI/pull/2643)
 
 ## New Contributors
 
