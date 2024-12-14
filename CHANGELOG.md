@@ -48,7 +48,7 @@ Information about these new protocols is available on https://github.com/ntop/nD
 ## New features
 
 * Implemented JA4 raw fingerprint (https://github.com/ntop/nDPI/commit/42ded07139e41c54a9ae2c8875a9e2c56d50af41)
-* Add monitoring capability (for STUN flows) (https://github.com/ntop/nDPI/pull/2588). See also: https://github.com/ntop/nDPI/blob/dev/doc/configuration_parameters.md
+* Add monitoring capability (for STUN flows) (https://github.com/ntop/nDPI/pull/2588). See also: https://github.com/ntop/nDPI/blob/dev/doc/monitoring.md
 * Implemented DNS host cache (https://github.com/ntop/nDPI/commit/55fa92490af593358a0b13ad1708ee9b14eec128)
 * Add a configuration file to `ndpiReader` (https://github.com/ntop/nDPI/pull/2629)
 
@@ -130,6 +130,8 @@ Further information is available on https://github.com/ntop/nDPI/blob/dev/doc/co
 * signal: improve detection of chats and calls (https://github.com/ntop/nDPI/pull/2637)
 * STUN: fix monitoring (https://github.com/ntop/nDPI/pull/2639)
 * STUN/RTP: improve metadata extraction (https://github.com/ntop/nDPI/pull/2641)
+* Added minor Citrix improvement (https://github.com/ntop/nDPI/commit/727d08deef1de94409db1b9aa45a49cf016a547a)
+* Telegram STUN improvement (https://github.com/ntop/nDPI/commit/4d17dc635cac296ae2f526c1d56a90c6d60170d8)
 
 ## Misc
 
