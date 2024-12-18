@@ -269,7 +269,7 @@ static void ndpi_int_rtp_add_connection(struct ndpi_detection_module_struct *ndp
        from the beginning */
     if(!(flow->l4_proto == IPPROTO_TCP && ndpi_seen_flow_beginning(flow))) {
       NDPI_LOG_DBG(ndpi_struct, "Enabling (STUN) extra dissection\n");
-      switch_extra_dissection_to_stun(ndpi_struct, flow);
+      switch_extra_dissection_to_stun(ndpi_struct, flow, 1);
     }
   }
 }
