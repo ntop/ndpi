@@ -6769,9 +6769,6 @@ void ndpi_free_flow_data(struct ndpi_flow_struct* flow) {
       if(flow->protos.tls_quic.subjectDN)
 	ndpi_free(flow->protos.tls_quic.subjectDN);
 
-      if(flow->protos.tls_quic.encrypted_sni.esni)
-	ndpi_free(flow->protos.tls_quic.encrypted_sni.esni);
-
       if(flow->protos.tls_quic.ja4_client_raw)
 	ndpi_free(flow->protos.tls_quic.ja4_client_raw);
    }

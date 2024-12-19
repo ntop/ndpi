@@ -546,11 +546,6 @@ static void ndpi_free_flow_tls_data(struct ndpi_flow_info *flow) {
     flow->ssh_tls.tls_subjectDN = NULL;
   }
 
-  if(flow->ssh_tls.encrypted_sni.esni) {
-    ndpi_free(flow->ssh_tls.encrypted_sni.esni);
-    flow->ssh_tls.encrypted_sni.esni = NULL;
-  }
-
   if(flow->ssh_tls.ja4_client_raw) {
     ndpi_free(flow->ssh_tls.ja4_client_raw);
     flow->ssh_tls.ja4_client_raw = NULL;
@@ -1562,11 +1557,6 @@ void process_ndpi_collected_info(struct ndpi_workflow * workflow, struct ndpi_fl
 
     if(flow->ndpi_flow->protos.tls_quic.subjectDN)
       flow->ssh_tls.tls_subjectDN = strdup(flow->ndpi_flow->protos.tls_quic.subjectDN);
-
-    if(flow->ndpi_flow->protos.tls_quic.encrypted_sni.esni) {
-      flow->ssh_tls.encrypted_sni.esni = strdup(flow->ndpi_flow->protos.tls_quic.encrypted_sni.esni);
-      flow->ssh_tls.encrypted_sni.cipher_suite = flow->ndpi_flow->protos.tls_quic.encrypted_sni.cipher_suite;
-    }
 
     flow->ssh_tls.encrypted_ch.version = flow->ndpi_flow->protos.tls_quic.encrypted_ch.version;
 
