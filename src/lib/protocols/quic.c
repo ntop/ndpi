@@ -1423,7 +1423,7 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
   uint32_t prev_offset;
   uint32_t tag_offset_start, offset, len;
   ndpi_protocol_match_result ret_match;
-  int sni_found = 0, ua_found = 0, icsl_found = 0;
+  int sni_found = 0, icsl_found = 0;
 
   if(crypto_data_len < 6)
     return;
@@ -1478,19 +1478,7 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
       }
       
       sni_found = 1;
-      if (ua_found && icsl_found)
-        return;
-    }
-
-    if(memcmp(tag, "UAID", 4) == 0) {
-      u_int uaid_offset = tag_offset_start + prev_offset;
-            
-      NDPI_LOG_DBG2(ndpi_struct, "UA: [%.*s]\n", len, &crypto_data[uaid_offset]);
-	
-      http_process_user_agent(ndpi_struct, flow, &crypto_data[uaid_offset], len); /* http.c */
-      ua_found = 1;
-	
-      if (sni_found && icsl_found)
+      if(icsl_found)
         return;
     }
 
@@ -1501,7 +1489,7 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
       NDPI_LOG_DBG2(ndpi_struct, "ICSL: %d\n", flow->protos.tls_quic.quic_idle_timeout_sec);
       icsl_found = 1;
 
-      if (sni_found && ua_found)
+      if(sni_found)
         return;
     }
 
