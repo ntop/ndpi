@@ -2302,7 +2302,7 @@ int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
 	return(0); /* Not found */
 
       ja.server.num_ciphers = 1, ja.server.cipher[0] = ntohs(*((u_int16_t*)&packet->payload[offset]));
-      if((flow->protos.tls_quic.server_unsafe_cipher = ndpi_is_safe_ssl_cipher(ja.server.cipher[0])) == 1) {
+      if((flow->protos.tls_quic.server_unsafe_cipher = ndpi_is_safe_ssl_cipher(ja.server.cipher[0])) != NDPI_CIPHER_SAFE) {
 	char str[64];
 	char unknown_cipher[8];
 
