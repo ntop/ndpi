@@ -42,7 +42,8 @@ static void ndpi_int_ftp_control_add_connection(struct ndpi_detection_module_str
 
 /* *************************************************************** */
 
-static int ndpi_ftp_control_check_request(struct ndpi_flow_struct *flow,
+static int ndpi_ftp_control_check_request(struct ndpi_detection_module_struct *ndpi_struct,
+                                          struct ndpi_flow_struct *flow,
 					  const u_int8_t *payload,
 					  size_t payload_len) {
 #ifdef FTP_DEBUG
@@ -58,7 +59,7 @@ static int ndpi_ftp_control_check_request(struct ndpi_flow_struct *flow,
 
     snprintf(buf, sizeof(buf), "Found FTP username (%s)",
 	     flow->l4.tcp.ftp_imap_pop_smtp.username);
-    ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS, buf);
+    ndpi_set_risk(ndpi_struct, flow, NDPI_CLEAR_TEXT_CREDENTIALS, buf);
     return 1;
   }
 
@@ -602,7 +603,7 @@ static void ndpi_check_ftp_control(struct ndpi_detection_module_struct *ndpi_str
   if(flow->ftp_control_stage == 0) {
     NDPI_LOG_DBG2(ndpi_struct, "FTP_CONTROL stage 0: \n");
 
-    if((payload_len > 0) && ndpi_ftp_control_check_request(flow,
+    if((payload_len > 0) && ndpi_ftp_control_check_request(ndpi_struct, flow,
 							   packet->payload, payload_len)) {
       NDPI_LOG_DBG2(ndpi_struct,
 		    "Possible FTP_CONTROL request detected, we will look further for the response..\n");
