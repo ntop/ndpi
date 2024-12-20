@@ -918,6 +918,9 @@ char* ndpi_ssl_version2str(char *buf, int buf_len,
 void ndpi_patchIPv6Address(char *str) {
   int i = 0, j = 0;
 
+  if (strstr(str, "::"))
+   return;
+
   while(str[i] != '\0') {
     if((str[i] == ':')
        && (str[i+1] == '0')
