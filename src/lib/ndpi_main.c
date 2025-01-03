@@ -7716,7 +7716,7 @@ static void ndpi_reconcile_msteams_call_udp(struct ndpi_flow_struct *flow) {
 static void ndpi_reconcile_protocols(struct ndpi_detection_module_struct *ndpi_str,
 				     struct ndpi_flow_struct *flow,
 				     ndpi_protocol *ret) {
-  u_int i;
+  u_int i, skip_risk = 0;
 
   /* This function can NOT access &ndpi_str->packet since it is called also from ndpi_detection_giveup() */
 
@@ -7863,13 +7863,31 @@ static void ndpi_reconcile_protocols(struct ndpi_detection_module_struct *ndpi_s
     case NDPI_PROTOCOL_UNSAFE:
     case NDPI_PROTOCOL_POTENTIALLY_DANGEROUS:
     case NDPI_PROTOCOL_DANGEROUS:
-      ndpi_set_risk(flow, NDPI_UNSAFE_PROTOCOL, NULL);
+
+      if(flow->detected_protocol_stack[i] == NDPI_PROTOCOL_SMBV1) {
+	/*
+	  Same as for smb.c we need to avoid sending warnings for
+	  requests sent to a broadcast address that can be sent to
+	  query old devices. As we see no MAC addresses in nDPI
+	  it's not simple to detect this fact, so we will use some
+	  heuristic here.
+	*/
+
+	if(ndpi_str->packet.payload_packet_len > 86 /* SMB command */) {
+	  if(ndpi_str->packet.payload[86] == 0x25 /* SMB Trans */)
+	    skip_risk = 1;
+	}
+      }
+      
+      if(!skip_risk)
+	ndpi_set_risk(flow, NDPI_UNSAFE_PROTOCOL, NULL);
       break;
+      
     default:
       /* Nothing to do */
       break;
     }
-  }
+  } /* for */
 }
 
 /* ********************************************************************************* */
