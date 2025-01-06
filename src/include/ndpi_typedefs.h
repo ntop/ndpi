@@ -97,7 +97,7 @@ typedef enum {
   NOTE
   When the typedef below is modified don't forget to update
   - nDPI/wireshark/ndpi.lua
-  - ndpi_risk2str, ndpi_risk2code, ndpi_code2risk (in ndpi_utils.c)
+  - ndpi_risk2str, ndpi_risk2code, ndpi_code2risk, ndpi_risk_shortnames (in ndpi_utils.c)
   - doc/flow_risks.rst
   - ndpi_known_risks (ndpi_main.c)
 
@@ -174,6 +174,9 @@ typedef enum {
 } ndpi_risk_enum;
 
 typedef u_int64_t ndpi_risk; /* (**) */
+
+/*Used mainly by configuration */
+extern const char *ndpi_risk_shortnames[NDPI_MAX_RISK];
 
 typedef enum {
   NDPI_PARAM_HOSTNAME  /* char* */,

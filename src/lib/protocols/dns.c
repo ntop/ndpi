@@ -44,7 +44,8 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct,
 
 /* *********************************************** */
 
-static void ndpi_check_dns_type(struct ndpi_flow_struct *flow,
+static void ndpi_check_dns_type(struct ndpi_detection_module_struct *ndpi_struct,
+                                struct ndpi_flow_struct *flow,
 				u_int16_t dns_type) {
   /* https://en.wikipedia.org/wiki/List_of_DNS_record_types */
 
@@ -92,7 +93,7 @@ static void ndpi_check_dns_type(struct ndpi_flow_struct *flow,
   case 106:
   case 107:
   case 259:
-    ndpi_set_risk(flow, NDPI_DNS_SUSPICIOUS_TRAFFIC, "Obsolete DNS record type");
+    ndpi_set_risk(ndpi_struct, flow, NDPI_DNS_SUSPICIOUS_TRAFFIC, "Obsolete DNS record type");
     break;
   }
 }
@@ -321,7 +322,7 @@ static int search_valid_dns(struct ndpi_detection_module_struct *ndpi_struct,
       }
     } else {
       if(flow->detected_protocol_stack[0] != NDPI_PROTOCOL_UNKNOWN)
-        ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, "Invalid DNS Header");
+        ndpi_set_risk(ndpi_struct, flow, NDPI_MALFORMED_PACKET, "Invalid DNS Header");
       return(1 /* invalid */);
     }
   } else {
@@ -351,10 +352,10 @@ static int search_valid_dns(struct ndpi_detection_module_struct *ndpi_struct,
 
       snprintf(str, sizeof(str), "DNS Error Code %s",
 	       dns_error_code2string(flow->protos.dns.reply_code, buf, sizeof(buf)));
-      ndpi_set_risk(flow, NDPI_ERROR_CODE_DETECTED, str);
+      ndpi_set_risk(ndpi_struct, flow, NDPI_ERROR_CODE_DETECTED, str);
     } else {
       if(ndpi_isset_risk(flow, NDPI_SUSPICIOUS_DGA_DOMAIN)) {
-	ndpi_set_risk(flow, NDPI_RISKY_DOMAIN, "DGA Name Query with no Error Code");
+	ndpi_set_risk(ndpi_struct, flow, NDPI_RISKY_DOMAIN, "DGA Name Query with no Error Code");
       }
     }
 
@@ -431,7 +432,7 @@ static int search_valid_dns(struct ndpi_detection_module_struct *ndpi_struct,
 	  rsp_ttl  = ntohl(*((u_int32_t*)&packet->payload[x+2]));
 
 	  if(rsp_ttl == 0)
-	    ndpi_set_risk(flow, NDPI_MINOR_ISSUES, "DNS Record with zero TTL");
+	    ndpi_set_risk(ndpi_struct, flow, NDPI_MINOR_ISSUES, "DNS Record with zero TTL");
 	  
 #ifdef DNS_DEBUG
 	  printf("[DNS] TTL = %u\n", rsp_ttl);
@@ -439,7 +440,7 @@ static int search_valid_dns(struct ndpi_detection_module_struct *ndpi_struct,
 #endif
 
 	  if(found == 0) {
-	    ndpi_check_dns_type(flow, rsp_type);
+	    ndpi_check_dns_type(ndpi_struct, flow, rsp_type);
 	    flow->protos.dns.rsp_type = rsp_type;
 	  }
 	  
@@ -776,7 +777,7 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct, st
 #ifdef DNS_DEBUG
 	printf("[DNS] Invalid query len [%u >= %u]\n", i+4, packet->payload_packet_len);
 #endif
-	ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, "Invalid DNS Query Lenght");
+	ndpi_set_risk(ndpi_struct, flow, NDPI_MALFORMED_PACKET, "Invalid DNS Query Lenght");
 	break;
       } else {
 	idx = i+5, num_queries++;
@@ -788,7 +789,7 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct, st
     ndpi_hostname_sni_set(flow, (const u_int8_t *)_hostname, len, is_mdns ? NDPI_HOSTNAME_NORM_LC : NDPI_HOSTNAME_NORM_ALL);
 
     if (hostname_is_valid == 0)
-      ndpi_set_risk(flow, NDPI_INVALID_CHARACTERS, "Invalid chars detected in domain name");
+      ndpi_set_risk(ndpi_struct, flow, NDPI_INVALID_CHARACTERS, "Invalid chars detected in domain name");
 
     /* Ignore reverse DNS queries */
     if(strstr(_hostname, ".in-addr.") == NULL) {
@@ -812,7 +813,7 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct, st
 	     )
 	    ; /* Check common domain exceptions [TODO: if the list grows too much use a different datastructure] */
 	  else
-	    ndpi_set_risk(flow, NDPI_DNS_SUSPICIOUS_TRAFFIC, "Long DNS host name");
+	    ndpi_set_risk(ndpi_struct, flow, NDPI_DNS_SUSPICIOUS_TRAFFIC, "Long DNS host name");
 	}
       }
     }
@@ -908,7 +909,7 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct, st
       char str[48];
 
       snprintf(str, sizeof(str), "%u Bytes DNS Packet", packet->payload_packet_len);
-      ndpi_set_risk(flow, NDPI_DNS_LARGE_PACKET, str);
+      ndpi_set_risk(ndpi_struct, flow, NDPI_DNS_LARGE_PACKET, str);
     }
 
     if(packet->iph != NULL) {
@@ -918,14 +919,14 @@ static void ndpi_search_dns(struct ndpi_detection_module_struct *ndpi_struct, st
       /* 0: fragmented; 1: not fragmented */
       if((flags & 0x20)
 	 || (iph_is_valid_and_not_fragmented(packet->iph, packet->l3_packet_len) == 0)) {
-	ndpi_set_risk(flow, NDPI_DNS_FRAGMENTED, NULL);
+	ndpi_set_risk(ndpi_struct, flow, NDPI_DNS_FRAGMENTED, NULL);
       }
     } else if(packet->iphv6 != NULL) {
       /* IPv6 */
       const struct ndpi_ip6_hdrctl *ip6_hdr = &packet->iphv6->ip6_hdr;
 
       if(ip6_hdr->ip6_un1_nxt == 0x2C /* Next Header: Fragment Header for IPv6 (44) */) {
-	ndpi_set_risk(flow, NDPI_DNS_FRAGMENTED, NULL);
+	ndpi_set_risk(ndpi_struct, flow, NDPI_DNS_FRAGMENTED, NULL);
       }
     }
   }

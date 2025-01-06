@@ -2573,6 +2573,66 @@ u_int16_t ndpi_risk2score(ndpi_risk risk,
   return(score);
 }
 
+const char *ndpi_risk_shortnames[NDPI_MAX_RISK] = {
+  "unknown",                    /* NDPI_NO_RISK */
+  "xss",
+  "sql",
+  "rce",
+  "binary_transfer",
+  "non_standard_port",
+  "tls_selfsigned_cert",
+  "tls_obsolete_ver",
+  "tls_weak_cipher",
+  "tls_cert_expired",
+  "tls_cert_mismatch",          /* NDPI_TLS_CERTIFICATE_MISMATCH */
+  "http_susp_ua",
+  "numeric_ip_host",
+  "http_susp_url",
+  "http_susp_header",
+  "tls_not_https",
+  "dga",
+  "malformed_pkt",
+  "ssh_obsolete_client",
+  "ssh_obsolete_server",
+  "smb_insecure_ver",           /* NDPI_SMB_INSECURE_VERSION */
+  "tls_esni",
+  "unsafe_proto",
+  "dns_susp",
+  "tls_no_sni",
+  "http_susp_content",
+  "risky_asn",
+  "risky_domain",
+  "malicious_fingerprint",
+  "malicious_cert",
+  "desktop_sharing",            /* NDPI_DESKTOP_OR_FILE_SHARING_SESSION */
+  "uls_uncommon_alpn",
+  "tls_cert_too_long",
+  "tls_susp_ext",
+  "tls_fatal_err",
+  "susp_entropy",
+  "clear_credential",
+  "dns_large_pkt",
+  "dns_fragmented",
+  "invalid_characters",
+  "exploit",                    /* NDPI_POSSIBLE_EXPLOIT */
+  "tls_cert_about_to_expire",
+  "punycode",
+  "error_code",
+  "crawler_bot",
+  "anonymous_subscriber",
+  "unidirectional",
+  "http_obsolete_server",
+  "periodic_flow",
+  "minor_issues",
+  "tcp_issues",                 /* NDPI_TCP_ISSUES */
+  "fully_encrypted",
+  "tls_alpn_mismatch",
+  "malware_host",
+  "binary_data_transfer",
+  "probing",
+  "obfuscated",
+};
+
 /* ******************************************************************** */
 
 const char* ndpi_http_method2str(ndpi_http_method m) {
@@ -2876,6 +2936,15 @@ static u_int8_t ndpi_check_ipv6_exception(struct ndpi_detection_module_struct *n
 
 /* ********************************************************************************* */
 
+static int is_flowrisk_enabled(struct ndpi_detection_module_struct *ndpi_str, ndpi_risk_enum flowrisk_id)
+{
+  if(NDPI_COMPARE_PROTOCOL_TO_BITMASK(ndpi_str->cfg.flowrisk_bitmask, flowrisk_id) == 0)
+    return 0;
+  return 1;
+}
+
+/* ********************************************************************************* */
+
 void ndpi_handle_risk_exceptions(struct ndpi_detection_module_struct *ndpi_str,
 				 struct ndpi_flow_struct *flow) {
   if(flow->risk == 0) return; /* Nothing to do */
@@ -2931,9 +3000,12 @@ void ndpi_handle_risk_exceptions(struct ndpi_detection_module_struct *ndpi_str,
 
 /* ******************************************************************** */
 
-void ndpi_set_risk(struct ndpi_flow_struct *flow, ndpi_risk_enum r,
-		   char *risk_message) {
+void ndpi_set_risk(struct ndpi_detection_module_struct *ndpi_str, struct ndpi_flow_struct *flow,
+                   ndpi_risk_enum r, char *risk_message) {
   if(!flow) return;
+
+  if(!is_flowrisk_enabled(ndpi_str, r))
+    return;
 
   /* Check if the risk is not yet set */
   if(!ndpi_isset_risk(flow, r)) {
@@ -3124,7 +3196,8 @@ char *ndpi_entropy2str(float entropy, char *buf, size_t len) {
 
 /* ******************************************************************** */
 
-void ndpi_entropy2risk(struct ndpi_flow_struct *flow) {
+void ndpi_entropy2risk(struct ndpi_detection_module_struct *ndpi_struct,
+                       struct ndpi_flow_struct *flow) {
   char str[64];
 
   if (NDPI_ENTROPY_PLAINTEXT(flow->entropy))
@@ -3142,7 +3215,7 @@ void ndpi_entropy2risk(struct ndpi_flow_struct *flow) {
 
   if (flow->confidence != NDPI_CONFIDENCE_DPI &&
       flow->confidence != NDPI_CONFIDENCE_DPI_CACHE) {
-    ndpi_set_risk(flow, NDPI_SUSPICIOUS_ENTROPY,
+    ndpi_set_risk(ndpi_struct, flow, NDPI_SUSPICIOUS_ENTROPY,
                   ndpi_entropy2str(flow->entropy, str, sizeof(str)));
     return;
   }
@@ -3161,7 +3234,7 @@ void ndpi_entropy2risk(struct ndpi_flow_struct *flow) {
       flow->category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED ||
       flow->category == NDPI_PROTOCOL_CATEGORY_WEB)
   {
-    ndpi_set_risk(flow, NDPI_SUSPICIOUS_ENTROPY,
+    ndpi_set_risk(ndpi_struct, flow, NDPI_SUSPICIOUS_ENTROPY,
                   ndpi_entropy2str(flow->entropy, str, sizeof(str)));
     return;
   }

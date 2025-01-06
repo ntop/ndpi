@@ -4466,7 +4466,7 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
 
 	  snprintf(buf, sizeof(buf), "Packet too short (%d vs %u)",
 		   packet->payload_packet_len, (unsigned int)sizeof(struct ndpi_icmphdr));
-	  ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, buf);
+	  ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET, buf);
 	} else {
 	  u_int8_t icmp_type = (u_int8_t)packet->payload[0];
 	  u_int8_t icmp_code = (u_int8_t)packet->payload[1];
@@ -4479,20 +4479,20 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
 	    snprintf(buf, sizeof(buf), "Invalid type (%u)/code(%u)",
 		     icmp_type, icmp_code);
 
-	    ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, buf);
+	    ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET, buf);
 	  }
 
 	  if(packet->payload_packet_len > sizeof(struct ndpi_icmphdr)) {
 	    if(ndpi_str->cfg.compute_entropy && (flow->skip_entropy_check == 0)) {
 	      flow->entropy = ndpi_entropy(packet->payload + sizeof(struct ndpi_icmphdr),
 	                                   packet->payload_packet_len - sizeof(struct ndpi_icmphdr));
-	      ndpi_entropy2risk(flow);
+	      ndpi_entropy2risk(ndpi_str, flow);
 	    }
 
 	    u_int16_t chksm = icmp4_checksum(packet->payload, packet->payload_packet_len);
 
 	    if(chksm) {
-	      ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, "Invalid ICMP checksum");
+	      ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET, "Invalid ICMP checksum");
 	    }
 	  }
 	}
@@ -4518,7 +4518,7 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
 	  snprintf(buf, sizeof(buf), "Packet too short (%d vs %u)",
 		   packet->payload_packet_len, (unsigned int)sizeof(struct ndpi_icmp6hdr));
 
-	  ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, buf);
+	  ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET, buf);
 	} else {
 	  u_int8_t icmp6_type = (u_int8_t)packet->payload[0];
 	  u_int8_t icmp6_code = (u_int8_t)packet->payload[1];
@@ -4531,7 +4531,7 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
 	    snprintf(buf, sizeof(buf), "Invalid type (%u)/code(%u)",
 		     icmp6_type, icmp6_code);
 
-	    ndpi_set_risk(flow, NDPI_MALFORMED_PACKET, buf);
+	    ndpi_set_risk(ndpi_str, flow, NDPI_MALFORMED_PACKET, buf);
 	  }
 	}
       }
@@ -7196,9 +7196,9 @@ static void ndpi_connection_tracking(struct ndpi_detection_module_struct *ndpi_s
       u_int8_t flags = ((u_int8_t*)tcph)[13];
 
       if(flags == 0)
-	ndpi_set_risk(flow, NDPI_TCP_ISSUES, "TCP NULL scan");
+	ndpi_set_risk(ndpi_str, flow, NDPI_TCP_ISSUES, "TCP NULL scan");
       else if(flags == (TH_FIN | TH_PUSH | TH_URG))
-	ndpi_set_risk(flow, NDPI_TCP_ISSUES, "TCP XMAS scan");
+	ndpi_set_risk(ndpi_str, flow, NDPI_TCP_ISSUES, "TCP XMAS scan");
 
       if(ndpi_str->cfg.direction_detect_enabled &&
          (tcph->source != tcph->dest))
@@ -7206,7 +7206,7 @@ static void ndpi_connection_tracking(struct ndpi_detection_module_struct *ndpi_s
 
       if(packet->packet_direction == 0 /* cli -> srv */) {
 	if(flags == TH_FIN)
-	  ndpi_set_risk(flow, NDPI_TCP_ISSUES, "TCP FIN scan");
+	  ndpi_set_risk(ndpi_str, flow, NDPI_TCP_ISSUES, "TCP FIN scan");
 
 	flow->l4.tcp.cli2srv_tcp_flags |= flags;
       } else
@@ -7380,9 +7380,9 @@ static void ndpi_connection_tracking(struct ndpi_detection_module_struct *ndpi_s
       /* ! (multicast or broadcast) */
 
       if(flow->packet_direction_complete_counter[flow->client_packet_direction] == 0)
-	ndpi_set_risk(flow, NDPI_UNIDIRECTIONAL_TRAFFIC, "No client to server traffic"); /* Should never happen */
+	ndpi_set_risk(ndpi_str, flow, NDPI_UNIDIRECTIONAL_TRAFFIC, "No client to server traffic"); /* Should never happen */
       else if(flow->packet_direction_complete_counter[!flow->client_packet_direction] == 0)
-	ndpi_set_risk(flow, NDPI_UNIDIRECTIONAL_TRAFFIC, "No server to client traffic");
+	ndpi_set_risk(ndpi_str, flow, NDPI_UNIDIRECTIONAL_TRAFFIC, "No server to client traffic");
       else {
 	ndpi_unset_risk(flow, NDPI_UNIDIRECTIONAL_TRAFFIC); /* Clear bit */
       }
@@ -7814,12 +7814,12 @@ static void ndpi_reconcile_protocols(struct ndpi_detection_module_struct *ndpi_s
     break;
 
   case NDPI_PROTOCOL_RDP:
-    ndpi_set_risk(flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found RDP"); /* Remote assistance */
+    ndpi_set_risk(ndpi_str, flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found RDP"); /* Remote assistance */
     break;
 
   case NDPI_PROTOCOL_ANYDESK:
     if(flow->l4_proto == IPPROTO_TCP) /* TCP only */
-      ndpi_set_risk(flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found AnyDesk"); /* Remote assistance */
+      ndpi_set_risk(ndpi_str, flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found AnyDesk"); /* Remote assistance */
     break;
 
     /* Generic container for microsoft subprotocols */
@@ -7877,7 +7877,7 @@ static void ndpi_reconcile_protocols(struct ndpi_detection_module_struct *ndpi_s
       }
       
       if(!skip_risk)
-	ndpi_set_risk(flow, NDPI_UNSAFE_PROTOCOL, NULL);
+	ndpi_set_risk(ndpi_str, flow, NDPI_UNSAFE_PROTOCOL, NULL);
       break;
       
     default:
@@ -7942,28 +7942,29 @@ int search_into_bittorrent_cache(struct ndpi_detection_module_struct *ndpi_struc
   As these conditions won't happen with nDPI protocol-detected protocols
   it is not necessary to call this function elsewhere
  */
-static void ndpi_check_tcp_flags(struct ndpi_flow_struct *flow) {
+static void ndpi_check_tcp_flags(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow) {
   // printf("[TOTAL] %u / %u [tot: %u]\n", flow->packet_direction_complete_counter[0], flow->packet_direction_complete_counter[1], flow->all_packets_counter);
   bool is_probing = false;
 
   if((flow->l4.tcp.cli2srv_tcp_flags & TH_SYN)
      && (flow->l4.tcp.srv2cli_tcp_flags & TH_RST)
      && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */))
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (server)"), is_probing = true;
+    ndpi_set_risk(ndpi_struct, flow, NDPI_TCP_ISSUES, "Connection refused (server)"), is_probing = true;
   else if((flow->l4.tcp.cli2srv_tcp_flags & TH_SYN)
 	  && (flow->l4.tcp.cli2srv_tcp_flags & TH_RST)
 	  && (flow->packet_counter == 0 /* Ignore connections terminated by RST but that exchanged data (3WH + RST) */))
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused (client)"), is_probing = true;
+    ndpi_set_risk(ndpi_struct, flow, NDPI_TCP_ISSUES, "Connection refused (client)"), is_probing = true;
   else if((flow->l4.tcp.srv2cli_tcp_flags & TH_RST) && (flow->packet_direction_complete_counter[1 /* server -> client */] == 1))
-    ndpi_set_risk(flow, NDPI_TCP_ISSUES, "Connection refused"), is_probing = true;
+    ndpi_set_risk(ndpi_struct, flow, NDPI_TCP_ISSUES, "Connection refused"), is_probing = true;
 
   if(is_probing)
-    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "TCP probing attempt");
+    ndpi_set_risk(ndpi_struct, flow, NDPI_PROBING_ATTEMPT, "TCP probing attempt");
 }
 
 /* ******************************************************************** */
 
-static void ndpi_check_probing_attempt(struct ndpi_flow_struct *flow) {
+static void ndpi_check_probing_attempt(struct ndpi_detection_module_struct *ndpi_str,
+                                       struct ndpi_flow_struct *flow) {
   /* TODO: check UDP traffic too */
 
   if((flow->l4_proto == IPPROTO_TCP)
@@ -7979,7 +7980,7 @@ static void ndpi_check_probing_attempt(struct ndpi_flow_struct *flow) {
 	switch(flow->detected_protocol_stack[0]) {
 	case NDPI_PROTOCOL_SSH:
 	  if(flow->protos.ssh.hassh_server[0] == '\0')
-	    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "SSH Probing");
+	    ndpi_set_risk(ndpi_str, flow, NDPI_PROBING_ATTEMPT, "SSH Probing");
 	  break;
 
 	case NDPI_PROTOCOL_TLS:
@@ -7988,12 +7989,12 @@ static void ndpi_check_probing_attempt(struct ndpi_flow_struct *flow) {
 	case NDPI_PROTOCOL_MAIL_IMAPS:
 	case NDPI_PROTOCOL_DTLS:
 	  if(flow->host_server_name[0] == '\0')
-	    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "TLS Probing");
+	    ndpi_set_risk(ndpi_str, flow, NDPI_PROBING_ATTEMPT, "TLS Probing");
 	  break;
 
 	case NDPI_PROTOCOL_QUIC:
 	  if(flow->host_server_name[0] == '\0')
-	    ndpi_set_risk(flow, NDPI_PROBING_ATTEMPT, "QUIC Probing");
+	    ndpi_set_risk(ndpi_str, flow, NDPI_PROBING_ATTEMPT, "QUIC Probing");
 	  break;
 	}
       }
@@ -8016,8 +8017,8 @@ ndpi_protocol ndpi_detection_giveup(struct ndpi_detection_module_struct *ndpi_st
     return(ret);
 
   if(flow->l4_proto == IPPROTO_TCP) {
-    ndpi_check_tcp_flags(flow);
-    ndpi_check_probing_attempt(flow);
+    ndpi_check_tcp_flags(ndpi_str, flow);
+    ndpi_check_probing_attempt(ndpi_str, flow);
   }
 
   /* Init defaults */
@@ -8058,7 +8059,7 @@ ndpi_protocol ndpi_detection_giveup(struct ndpi_detection_module_struct *ndpi_st
   /* TODO: not sure about the best "order" among fully encrypted logic, classification by-port and classification by-ip...*/
   if(ret.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN &&
      flow->first_pkt_fully_encrypted == 1) {
-    ndpi_set_risk(flow, NDPI_FULLY_ENCRYPTED, NULL);
+    ndpi_set_risk(ndpi_str, flow, NDPI_FULLY_ENCRYPTED, NULL);
   }
 
   /* If guess_ip_before_port is enabled, classify by-ip first */
@@ -8350,7 +8351,7 @@ int ndpi_fill_ip_protocol_category(struct ndpi_detection_module_struct *ndpi_str
       ret->custom_category_userdata = node->custom_user_data;
 
       if((ret->category == CUSTOM_CATEGORY_MALWARE) && (match_client == false)) {
-	ndpi_set_risk(flow, NDPI_MALWARE_HOST_CONTACTED, "Client contacted malware host");
+	ndpi_set_risk(ndpi_str, flow, NDPI_MALWARE_HOST_CONTACTED, "Client contacted malware host");
       }
 
       return(1);
@@ -8396,7 +8397,7 @@ int ndpi_fill_ipv6_protocol_category(struct ndpi_detection_module_struct *ndpi_s
       ret->custom_category_userdata = node->custom_user_data;
 
       if((ret->category == CUSTOM_CATEGORY_MALWARE) && (match_client == false)) {
-	ndpi_set_risk(flow, NDPI_MALWARE_HOST_CONTACTED, "Client contacted malware host");
+	ndpi_set_risk(ndpi_str, flow, NDPI_MALWARE_HOST_CONTACTED, "Client contacted malware host");
       }
 
       return(1);
@@ -8481,7 +8482,7 @@ static void ndpi_search_shellscript(struct ndpi_detection_module_struct *ndpi_st
     return;
 
   NDPI_LOG_INFO(ndpi_struct, "found Shellscript\n");
-  ndpi_set_risk(flow, NDPI_POSSIBLE_EXPLOIT, "Shellscript found");
+  ndpi_set_risk(ndpi_struct, flow, NDPI_POSSIBLE_EXPLOIT, "Shellscript found");
 }
 
 /* ********************************************************************************* */
@@ -8506,7 +8507,7 @@ static void ndpi_search_elf(struct ndpi_detection_module_struct *ndpi_struct,
     return;
 
   NDPI_LOG_INFO(ndpi_struct, "found ELF file\n");
-  ndpi_set_risk(flow, NDPI_BINARY_APPLICATION_TRANSFER, "ELF found");
+  ndpi_set_risk(ndpi_struct, flow, NDPI_BINARY_APPLICATION_TRANSFER, "ELF found");
 }
 
 /* ********************************************************************************* */
@@ -8532,7 +8533,7 @@ static void ndpi_search_portable_executable(struct ndpi_detection_module_struct 
     return;
 
   NDPI_LOG_INFO(ndpi_struct, "found Portable Executable (PE) file\n");
-  ndpi_set_risk(flow, NDPI_BINARY_APPLICATION_TRANSFER, "Portable Executable (PE32/PE32+) found");
+  ndpi_set_risk(ndpi_struct, flow, NDPI_BINARY_APPLICATION_TRANSFER, "Portable Executable (PE32/PE32+) found");
 }
 
 /* ********************************************************************************* */
@@ -8920,7 +8921,7 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
 	    if(default_ports && (default_ports[0] != 0)) {
 	      char str[64];
 
-	      ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
+	      ndpi_set_risk(ndpi_str, flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
 			    ndpi_expected_ports_str(default_ports, str, sizeof(str)));
 	    }
 	  }
@@ -8967,7 +8968,7 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
 	    if(default_ports && (default_ports[0] != 0)) {
 	      char str[64];
 	      
-	      ndpi_set_risk(flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
+	      ndpi_set_risk(ndpi_str, flow, NDPI_KNOWN_PROTOCOL_ON_NON_STANDARD_PORT,
 			    ndpi_expected_ports_str(default_ports, str, sizeof(str)));
 	    }
 	  }
@@ -9001,7 +9002,7 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
     }
 
     if(net_risk != NDPI_NO_RISK)
-      ndpi_set_risk(flow, net_risk, NULL);
+      ndpi_set_risk(ndpi_str, flow, net_risk, NULL);
 
     flow->tree_risk_checked = 1;
   }
@@ -9040,7 +9041,7 @@ static ndpi_protocol ndpi_internal_detection_process_packet(struct ndpi_detectio
       flow->entropy = ndpi_entropy(packet->payload, packet->payload_packet_len);
     }
 
-    ndpi_entropy2risk(flow);
+    ndpi_entropy2risk(ndpi_str, flow);
   }
 
   /* First Packet Classification */
@@ -10338,7 +10339,7 @@ void ndpi_check_subprotocol_risk(struct ndpi_detection_module_struct *ndpi_str,
 
   switch(subprotocol_id) {
   case NDPI_PROTOCOL_ANYDESK:
-    ndpi_set_risk(flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found AnyDesk"); /* Remote assistance */
+    ndpi_set_risk(ndpi_str, flow, NDPI_DESKTOP_OR_FILE_SHARING_SESSION, "Found AnyDesk"); /* Remote assistance */
     break;
   }
 }
@@ -10379,7 +10380,7 @@ u_int16_t ndpi_match_host_subprotocol(struct ndpi_detection_module_struct *ndpi_
       char str[64] = { '\0' };
 
       strncpy(str, string_to_match, ndpi_min(string_to_match_len, sizeof(str)-1));
-      ndpi_set_risk(flow, NDPI_RISKY_DOMAIN, str);
+      ndpi_set_risk(ndpi_str, flow, NDPI_RISKY_DOMAIN, str);
     }
   }
 
@@ -10388,7 +10389,7 @@ u_int16_t ndpi_match_host_subprotocol(struct ndpi_detection_module_struct *ndpi_
     char str[64] = { '\0' };
 
     strncpy(str, string_to_match, ndpi_min(string_to_match_len, sizeof(str)-1));
-    ndpi_set_risk(flow, NDPI_PUNYCODE_IDN, str);
+    ndpi_set_risk(ndpi_str, flow, NDPI_PUNYCODE_IDN, str);
   }
 
   return(rc);
@@ -10532,7 +10533,7 @@ u_int8_t ndpi_extra_dissection_possible(struct ndpi_detection_module_struct *ndp
 	 !!flow->extra_packets_func);
 
   if(!flow->extra_packets_func) {
-    ndpi_check_probing_attempt(flow);
+    ndpi_check_probing_attempt(ndpi_str, flow);
     return(0);
   }
 
@@ -10775,7 +10776,7 @@ int ndpi_check_dga_name(struct ndpi_detection_module_struct *ndpi_str,
 
     if(rc) {
       if(flow)
-	ndpi_set_risk(flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
+	ndpi_set_risk(ndpi_str, flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
     }
 
     return(rc);
@@ -10922,7 +10923,7 @@ int ndpi_check_dga_name(struct ndpi_detection_module_struct *ndpi_str,
 	 || ((max_domain_element_len >= 19 /* word too long. Example bbcbedxhgjmdobdprmen.com */) && ((num_char_repetitions > 1) || (num_digits > 1)))
 	 ) {
 	if(flow) {
-	  ndpi_set_risk(flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
+	  ndpi_set_risk(ndpi_str, flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
 	}
 
 	NDPI_LOG_DBG2(ndpi_str, "[DGA] Found!");
@@ -11076,7 +11077,7 @@ int ndpi_check_dga_name(struct ndpi_detection_module_struct *ndpi_str,
     NDPI_LOG_DBG2(ndpi_str, "[DGA] Result: %u\n", rc);
 
     if(rc && flow)
-      ndpi_set_risk(flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
+      ndpi_set_risk(ndpi_str, flow, NDPI_SUSPICIOUS_DGA_DOMAIN, name);
 
     return(rc);
   }
@@ -11223,16 +11224,45 @@ static u_int16_t __get_proto_id(const char *proto_name_or_id)
 
 /* ******************************************************************** */
 
+static ndpi_risk_enum __get_flowrisk_id(const char *flowrisk_name_or_id)
+{
+  char *endptr;
+  long val;
+  int i;
+
+  /* Let try to decode the string as numerical flow risk id */
+  /* We can't easily use ndpi_strtonum because we want to be sure that there are no
+     others characters after the number */
+  errno = 0;    /* To distinguish success/failure after call */
+  val = strtol(flowrisk_name_or_id, &endptr, 10);
+  if(errno == 0 && *endptr == '\0' &&
+     (val >= 0 && val < NDPI_MAX_RISK)) {
+    return val;
+
+  }
+
+  /* Try to decode the string as flow risk name */
+  for(i = 0; i < NDPI_MAX_RISK; i++) {
+    if(strcmp(ndpi_risk_shortnames[i], flowrisk_name_or_id) == 0)
+      return i;
+  }
+
+  return NDPI_NO_RISK;
+}
+
+/* ******************************************************************** */
+
 static ndpi_cfg_error _set_param_enable_disable(struct ndpi_detection_module_struct *ndpi_str,
                                                 void *_variable, const char *value,
                                                 const char *min_value, const char *max_value,
-                                                const char *proto) {
+                                                const char *proto, const char *param) {
   int *variable = (int *)_variable;
 
   (void)ndpi_str;
   (void)min_value;
   (void)max_value;
   (void)proto;
+  (void)param;
 
   if(strcmp(value, "1") == 0 ||
      strcmp(value, "enable") == 0) {
@@ -11254,13 +11284,14 @@ static ndpi_cfg_error _set_param_enable_disable(struct ndpi_detection_module_str
 static ndpi_cfg_error _set_param_int(struct ndpi_detection_module_struct *ndpi_str,
                                      void *_variable, const char *value,
                                      const char *min_value, const char *max_value,
-                                     const char *proto) {
+                                     const char *proto, const char *param) {
   int *variable = (int *)_variable;
   const char *errstrp;
   long val;
 
   (void)ndpi_str;
   (void)proto;
+  (void)param;
 
   val = ndpi_strtonum(value, LONG_MIN, LONG_MAX, &errstrp, 0);
   if(errstrp) {
@@ -11307,13 +11338,14 @@ static char *_get_param_string(void *_variable, const char *proto, char *buf, in
 static ndpi_cfg_error _set_param_filename(struct ndpi_detection_module_struct *ndpi_str,
                                           void *_variable, const char *value,
                                           const char *min_value, const char *max_value,
-                                          const char *proto) {
+                                          const char *proto, const char *param) {
   char *variable = (char *)_variable;
 
   (void)ndpi_str;
   (void)min_value;
   (void)max_value;
   (void)proto;
+  (void)param;
 
   if(value == NULL) { /* Valid value */
     variable[0] = '\0';
@@ -11331,11 +11363,11 @@ static ndpi_cfg_error _set_param_filename(struct ndpi_detection_module_struct *n
 static ndpi_cfg_error _set_param_filename_config(struct ndpi_detection_module_struct *ndpi_str,
                                                  void *_variable, const char *value,
                                                  const char *min_value, const char *max_value,
-                                                 const char *proto) {
+                                                 const char *proto, const char *param) {
   int rc;
   FILE *fd;
 
-  rc = _set_param_filename(ndpi_str, _variable, value, min_value, max_value, proto);
+  rc = _set_param_filename(ndpi_str, _variable, value, min_value, max_value, proto, param);
   if(rc != 0 || value == NULL || ndpi_str == NULL)
     return rc;
 
@@ -11374,7 +11406,7 @@ static char *_get_param_protocol_enable_disable(void *_variable, const char *pro
 static ndpi_cfg_error _set_param_protocol_enable_disable(struct ndpi_detection_module_struct *ndpi_str,
                                                          void *_variable, const char *value,
                                                          const char *min_value, const char *max_value,
-                                                         const char *proto)
+                                                         const char *proto, const char *param)
 {
   NDPI_PROTOCOL_BITMASK *bitmask = (NDPI_PROTOCOL_BITMASK *)_variable;
   u_int16_t proto_id;
@@ -11382,6 +11414,7 @@ static ndpi_cfg_error _set_param_protocol_enable_disable(struct ndpi_detection_m
   (void)ndpi_str;
   (void)min_value;
   (void)max_value;
+  (void)param;
 
   if(strcmp(proto, "any") == 0 ||
      strcmp(proto, "all") == 0 ||
@@ -11415,6 +11448,71 @@ static ndpi_cfg_error _set_param_protocol_enable_disable(struct ndpi_detection_m
   return NDPI_CFG_INVALID_PARAM;
 }
 
+static char *_get_param_flowrisk_enable_disable(void *_variable, const char *proto,
+                                                char *buf, int buf_len)
+{
+  NDPI_PROTOCOL_BITMASK *bitmask = (NDPI_PROTOCOL_BITMASK *)_variable;
+  ndpi_risk_enum flowrisk_id;
+
+  flowrisk_id = __get_flowrisk_id(proto);
+  if(flowrisk_id == NDPI_NO_RISK)
+    return NULL;
+
+  snprintf(buf, buf_len, "%d", !!NDPI_ISSET(bitmask, flowrisk_id));
+  buf[buf_len - 1] = '\0';
+  return buf;
+}
+
+static ndpi_cfg_error _set_param_flowrisk_enable_disable(struct ndpi_detection_module_struct *ndpi_str,
+                                                         void *_variable, const char *value,
+                                                         const char *min_value, const char *max_value,
+                                                         const char *proto, const char *param)
+{
+  NDPI_PROTOCOL_BITMASK *bitmask = (NDPI_PROTOCOL_BITMASK *)_variable;
+  ndpi_risk_enum flowrisk_id;
+
+  (void)ndpi_str;
+  (void)min_value;
+  (void)max_value;
+  (void)proto;
+
+  if(strncmp(param, "flow_risk.", 10) != 0)
+    return NDPI_CFG_INVALID_PARAM;
+
+  param += 10; /* Strip initial "flow_risk." */
+
+  if(strcmp(param, "any") == 0 ||
+     strcmp(param, "all") == 0 ||
+     strcmp(param, "$FLOWRISK_NAME_OR_ID") == 0) {
+    if(strcmp(value, "1") == 0 ||
+       strcmp(value, "enable") == 0) {
+      NDPI_BITMASK_SET_ALL(*bitmask);
+      return NDPI_CFG_OK;
+    }
+    if(strcmp(value, "0") == 0 ||
+       strcmp(value, "disable") == 0) {
+      NDPI_BITMASK_RESET(*bitmask);
+      return NDPI_CFG_OK;
+    }
+  }
+
+  flowrisk_id = __get_flowrisk_id(param);
+  if(flowrisk_id == NDPI_NO_RISK)
+    return NDPI_CFG_INVALID_PARAM;
+
+  if(strcmp(value, "1") == 0 ||
+     strcmp(value, "enable") == 0) {
+    NDPI_BITMASK_ADD(*bitmask, flowrisk_id);
+    return NDPI_CFG_OK;
+  }
+  if(strcmp(value, "0") == 0 ||
+     strcmp(value, "disable") == 0) {
+    NDPI_BITMASK_DEL(*bitmask, flowrisk_id);
+    return NDPI_CFG_OK;
+  }
+  return NDPI_CFG_INVALID_PARAM;
+}
+
 static int clbk_only_with_global_ctx(struct ndpi_detection_module_struct *ndpi_str,
                                      void *_variable, const char *proto,
                                      const char *param)
@@ -11438,12 +11536,13 @@ enum cfg_param_type {
   CFG_PARAM_INT,
   CFG_PARAM_PROTOCOL_ENABLE_DISABLE,
   CFG_PARAM_FILENAME_CONFIG, /* We call ndpi_set_config() immediately for each row in it */
+  CFG_PARAM_FLOWRISK_ENABLE_DISABLE,
 };
 
 typedef ndpi_cfg_error (*cfg_set)(struct ndpi_detection_module_struct *ndpi_str,
                                   void *_variable, const char *value,
                                   const char *min_value, const char *max_value,
-                                  const char *proto);
+                                  const char *proto, const char *param);
 typedef char *(*cfg_get)(void *_variable, const char *proto, char *buf, int buf_len);
 typedef int (*cfg_calback)(struct ndpi_detection_module_struct *ndpi_str, void *_variable, const char *proto, const char *param);
 
@@ -11456,6 +11555,7 @@ static const struct cfg_op {
   { CFG_PARAM_INT,                     _set_param_int,                     _get_param_int },
   { CFG_PARAM_PROTOCOL_ENABLE_DISABLE, _set_param_protocol_enable_disable, _get_param_protocol_enable_disable },
   { CFG_PARAM_FILENAME_CONFIG,         _set_param_filename_config,         _get_param_string },
+  { CFG_PARAM_FLOWRISK_ENABLE_DISABLE, _set_param_flowrisk_enable_disable, _get_param_flowrisk_enable_disable },
 };
 
 #define __OFF(a)	offsetof(struct ndpi_detection_module_config_struct, a)
@@ -11548,6 +11648,8 @@ static const struct cfg_param {
 
   { NULL,            "flow_risk_lists.load",                    "1", NULL, NULL, CFG_PARAM_ENABLE_DISABLE, __OFF(flow_risk_lists_enabled), NULL },
 
+  { NULL,            "flow_risk.$FLOWRISK_NAME_OR_ID",          "enable", NULL, NULL, CFG_PARAM_FLOWRISK_ENABLE_DISABLE, __OFF(flowrisk_bitmask), NULL },
+
   { NULL,            "flow_risk.anonymous_subscriber.list.icloudprivaterelay.load", "1", NULL, NULL, CFG_PARAM_ENABLE_DISABLE, __OFF(risk_anonymous_subscriber_list_icloudprivaterelay_enabled), NULL },
   { NULL,            "flow_risk.anonymous_subscriber.list.protonvpn.load",          "1", NULL, NULL, CFG_PARAM_ENABLE_DISABLE, __OFF(risk_anonymous_subscriber_list_protonvpn_enabled), NULL },
   { NULL,            "flow_risk.crawler_bot.list.load",                             "1", NULL, NULL, CFG_PARAM_ENABLE_DISABLE, __OFF(risk_crawler_bot_list_enabled), NULL },
@@ -11597,7 +11699,7 @@ static void set_default_config(struct ndpi_detection_module_config_struct *cfg)
 
   for(c = &cfg_params[0]; c && c->param; c++) {
     cfg_ops[c->type].fn_set(NULL, (void *)((char *)cfg + c->offset),
-                            c->default_value, c->min_value, c->max_value, c->proto);
+                            c->default_value, c->min_value, c->max_value, c->proto, c->param);
   }
 }
 
@@ -11621,10 +11723,13 @@ ndpi_cfg_error ndpi_set_config(struct ndpi_detection_module_struct *ndpi_str,
         strcmp(param, c->param) == 0) ||
        (proto && c->proto &&
 	strcmp(c->proto, "$PROTO_NAME_OR_ID") == 0 &&
-	strcmp(param, c->param) == 0)) {
+	strcmp(param, c->param) == 0) ||
+       (proto == NULL && c->proto == NULL &&
+	strncmp(c->param, "flow_risk.", 10) == 0 &&
+	strncmp(param, "flow_risk.", 10) == 0)) {
 
       rc = cfg_ops[c->type].fn_set(ndpi_str, (void *)((char *)&ndpi_str->cfg + c->offset),
-                                   value, c->min_value, c->max_value, proto);
+                                   value, c->min_value, c->max_value, proto, param);
       if(rc == NDPI_CFG_OK && c->fn_callback) {
         ret = c->fn_callback(ndpi_str, (void *)((char *)&ndpi_str->cfg + c->offset),
                              proto, param);
@@ -11670,6 +11775,9 @@ char *ndpi_get_config(struct ndpi_detection_module_struct *ndpi_str,
         strcmp(param, c->param) == 0) ||
        (proto && c->proto &&
 	strcmp(c->proto, "$PROTO_NAME_OR_ID") == 0 &&
+	strcmp(param, c->param) == 0) ||
+       (proto == NULL && c->proto == NULL &&
+	strcmp(c->param, "flow_risk.$FLOWRISK_NAME_OR_ID") == 0 &&
 	strcmp(param, c->param) == 0)) {
 
       return cfg_ops[c->type].fn_get((void *)((char *)&ndpi_str->cfg + c->offset), proto, buf, buf_len);
@@ -11720,6 +11828,15 @@ char *ndpi_dump_config(struct ndpi_detection_module_struct *ndpi_str,
 	      c->default_value);
       fprintf(fd, "\n");
       break;
+      /* TODO */
+      case CFG_PARAM_FLOWRISK_ENABLE_DISABLE:
+        fprintf(fd, " *) %s %s: %s [all %s]",
+                c->proto ? c->proto : "NULL",
+                c->param,
+                /* TODO */ _get_param_flowrisk_enable_disable((void *)((char *)&ndpi_str->cfg + c->offset), "any", buf, sizeof(buf)),
+                c->default_value);
+        fprintf(fd, "\n");
+        break;
     }
   }
   return NULL;
