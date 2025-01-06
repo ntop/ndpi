@@ -129,8 +129,7 @@ static int is_quic_ver_less_than(uint32_t version, uint8_t max_version)
   uint8_t u8_ver = get_u8_quic_ver(version);
   return u8_ver && u8_ver <= max_version;
 }
-
-static int is_quic_ver_greater_than(uint32_t version, uint8_t min_version)
+int is_quic_ver_greater_than(uint32_t version, uint8_t min_version)
 {
   return get_u8_quic_ver(version) >= min_version;
 }
@@ -1424,7 +1423,7 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
   uint32_t prev_offset;
   uint32_t tag_offset_start, offset, len;
   ndpi_protocol_match_result ret_match;
-  int sni_found = 0, ua_found = 0;
+  int sni_found = 0, ua_found = 0, icsl_found = 0;
 
   if(crypto_data_len < 6)
     return;
@@ -1479,7 +1478,7 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
       }
       
       sni_found = 1;
-      if (ua_found)
+      if (ua_found && icsl_found)
         return;
     }
 
@@ -1491,7 +1490,18 @@ void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
       http_process_user_agent(ndpi_struct, flow, &crypto_data[uaid_offset], len); /* http.c */
       ua_found = 1;
 	
-      if (sni_found)
+      if (sni_found && icsl_found)
+        return;
+    }
+
+    if(memcmp(tag, "ICSL", 4) == 0 && len >= 4) {
+      u_int icsl_offset = tag_offset_start + prev_offset;
+
+      flow->protos.tls_quic.quic_idle_timeout_sec = le32toh((*(uint32_t *)&crypto_data[icsl_offset]));
+      NDPI_LOG_DBG2(ndpi_struct, "ICSL: %d\n", flow->protos.tls_quic.quic_idle_timeout_sec);
+      icsl_found = 1;
+
+      if (sni_found && ua_found)
         return;
     }
 

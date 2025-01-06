@@ -672,6 +672,7 @@ int quic_len(const uint8_t *buf, uint64_t *value);
 int quic_len_buffer_still_required(uint8_t value);
 int is_version_with_var_int_transport_params(uint32_t version);
 int is_version_with_tls(uint32_t version);
+int is_quic_ver_greater_than(uint32_t version, uint8_t min_version);
 void process_chlo(struct ndpi_detection_module_struct *ndpi_struct,
                   struct ndpi_flow_struct *flow,
                   const u_int8_t *crypto_data, uint32_t crypto_data_len);

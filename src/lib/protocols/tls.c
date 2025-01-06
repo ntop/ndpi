@@ -3170,6 +3170,23 @@ int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
 		    http_process_user_agent(ndpi_struct, flow, &packet->payload[s_offset], param_len);
 		    break;
 		  }
+		  if(param_type == 0x01) {
+                    uint64_t max_idle_timeout;
+
+                    /* max_idle_timeout format changed across draft versions.
+                       Nowdays, we are interested only in latest draft, so check
+                       only for the RFC format */
+                    if(is_quic_ver_greater_than(quic_version, 27)) {
+                      if(param_len > 0 &&
+                         quic_len_buffer_still_required(packet->payload[s_offset]) <= (int)param_len) {
+                        quic_len(&packet->payload[s_offset], &max_idle_timeout);
+                        flow->protos.tls_quic.quic_idle_timeout_sec = max_idle_timeout / 1000;
+#ifdef DEBUG_TLS
+                        printf("Max Idle Timeout: %d\n", flow->protos.tls_quic.quic_idle_timeout_sec);
+#endif
+                      }
+                    }
+		  }
 		  s_offset += param_len;
 		}
 	      } else if(extension_id == 21) { /* Padding */

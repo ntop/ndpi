@@ -279,6 +279,7 @@ typedef struct ndpi_flow_info {
   char *bittorent_hash;
   char *dhcp_fingerprint;
   char *dhcp_class_ident;
+  uint32_t idle_timeout_sec;
   ndpi_risk risk;
 
   struct {
