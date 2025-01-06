@@ -2176,13 +2176,6 @@ static void printFlow(u_int32_t id, struct ndpi_flow_info *flow, u_int16_t threa
     if(flow->ssh_tls.tls_issuerDN)  fprintf(out, "[Issuer: %s]", flow->ssh_tls.tls_issuerDN);
     if(flow->ssh_tls.tls_subjectDN) fprintf(out, "[Subject: %s]", flow->ssh_tls.tls_subjectDN);
 
-    if(flow->ssh_tls.encrypted_sni.esni) {
-      char unknown_cipher[8];
-      fprintf(out, "[ESNI: %s]", flow->ssh_tls.encrypted_sni.esni);
-      fprintf(out, "[ESNI Cipher: %s]",
-              ndpi_cipher2str(flow->ssh_tls.encrypted_sni.cipher_suite, unknown_cipher));
-    }
-
     if(flow->ssh_tls.encrypted_ch.version != 0) {
       fprintf(out, "[ECH: version 0x%x]", flow->ssh_tls.encrypted_ch.version);
     }

@@ -3108,62 +3108,9 @@ int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
 		  if(flow->protos.tls_quic.tls_supported_versions == NULL)
 		    flow->protos.tls_quic.tls_supported_versions = ndpi_strdup(version_str);
 		}
-	      } else if(extension_id == 65486 /* encrypted server name */ &&
-	                offset+extension_offset+1 < total_len) {
-		/*
-		  - https://tools.ietf.org/html/draft-ietf-tls-esni-06
-		  - https://blog.cloudflare.com/encrypted-sni/
-		*/
-		int e_offset = offset+extension_offset;
-		int e_sni_len;
-		int initial_offset = e_offset;
-		u_int16_t cipher_suite = ntohs(*((u_int16_t*)&packet->payload[e_offset]));
-
-		flow->protos.tls_quic.encrypted_sni.cipher_suite = cipher_suite;
-
-		e_offset += 2; /* Cipher suite len */
-
-		/* Key Share Entry */
-		e_offset += 2; /* Group */
-		if(e_offset + 2 < packet->payload_packet_len) {
-		  e_offset += ntohs(*((u_int16_t*)&packet->payload[e_offset])) + 2; /* Lenght */
-
-		  if((e_offset+4) < packet->payload_packet_len) {
-		    /* Record Digest */
-		    e_offset +=  ntohs(*((u_int16_t*)&packet->payload[e_offset])) + 2; /* Lenght */
-
-		    if((e_offset+4) < packet->payload_packet_len) {
-		      e_sni_len = ntohs(*((u_int16_t*)&packet->payload[e_offset]));
-		      e_offset += 2;
-
-		      if((e_offset+e_sni_len-(int)extension_len-initial_offset) >= 0 &&
-			 e_offset+e_sni_len < packet->payload_packet_len) {
-#ifdef DEBUG_ENCRYPTED_SNI
-			printf("Client TLS [Encrypted Server Name len: %u]\n", e_sni_len);
-#endif
-
-			if(flow->protos.tls_quic.encrypted_sni.esni == NULL) {
-			  flow->protos.tls_quic.encrypted_sni.esni = (char*)ndpi_malloc(e_sni_len*2+1);
-
-			  if(flow->protos.tls_quic.encrypted_sni.esni) {
-			    u_int16_t off;
-			    int i;
-
-			    for(i=e_offset, off=0; i<(e_offset+e_sni_len); i++) {
-			      int rc = sprintf(&flow->protos.tls_quic.encrypted_sni.esni[off], "%02X", packet->payload[i] & 0XFF);
-
-			      if(rc <= 0) {
-				break;
-			      } else
-				off += rc;
-			    }
-			    flow->protos.tls_quic.encrypted_sni.esni[off] = '\0';
-			  }
-			}
-		      }
-		    }
-		  }
-		}
+	      } else if(extension_id == 65486 /* encrypted server name */) {
+		/* ESNI has been superseded by ECH */
+	        ndpi_set_risk(flow, NDPI_TLS_SUSPICIOUS_ESNI_USAGE, NULL);
 	      } else if(extension_id == 65037 /* ECH: latest drafts */) {
 #ifdef DEBUG_TLS
 		printf("Client TLS: ECH version 0x%x\n", extension_id);
@@ -3332,18 +3279,10 @@ compute_ja3c:
 	      ndpi_set_risk(flow, NDPI_TLS_NOT_CARRYING_HTTPS, "No ALPN");
 	    }
 
-	    /* Suspicious Domain Fronting:
-	       https://github.com/SixGenInc/Noctilucent/blob/master/docs/ */
-	    if(flow->protos.tls_quic.encrypted_sni.esni &&
-	       flow->host_server_name[0] != '\0') {
-	      ndpi_set_risk(flow, NDPI_TLS_SUSPICIOUS_ESNI_USAGE, "Found ESNI w/o SNI");
-	    }
-
 	    /* Add check for missing SNI */
 	    if(flow->host_server_name[0] == '\0'
 	       && (flow->protos.tls_quic.ssl_version >= 0x0302) /* TLSv1.1 */
 	       && !flow->protos.tls_quic.webrtc
-	       && (flow->protos.tls_quic.encrypted_sni.esni == NULL) /* No ESNI */
 	       ) {
 	      /* This is a bit suspicious */
 	      ndpi_set_risk(flow, NDPI_TLS_MISSING_SNI, "SNI should always be present");

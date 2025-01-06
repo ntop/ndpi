@@ -295,11 +295,6 @@ typedef struct ndpi_flow_info {
       sha1_cert_fingerprint[20];
     u_int8_t sha1_cert_fingerprint_set;
     struct tls_heuristics browser_heuristics;
-    
-    struct {
-      u_int16_t cipher_suite;
-      char *esni;
-    } encrypted_sni;    
 
     struct {
       u_int16_t version;

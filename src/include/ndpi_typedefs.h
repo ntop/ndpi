@@ -1435,11 +1435,6 @@ struct ndpi_flow_struct {
       u_int16_t ssl_version, server_names_len;
 
       struct {
-        u_int16_t cipher_suite;
-        char *esni;
-      } encrypted_sni;
-
-      struct {
         u_int16_t version;
       } encrypted_ch;
 
