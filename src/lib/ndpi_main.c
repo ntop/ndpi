@@ -4411,24 +4411,6 @@ static default_ports_tree_node_t *ndpi_get_guessed_protocol_id(struct ndpi_detec
 
 /* ****************************************************** */
 
-/*
-  These are UDP protocols that must fit a single packet
-  and thus that if have NOT been detected they cannot be guessed
-  as they have been excluded
-*/
-u_int8_t is_udp_not_guessable_protocol(u_int16_t l7_guessed_proto) {
-  switch(l7_guessed_proto) {
-  case NDPI_PROTOCOL_SNMP:
-  case NDPI_PROTOCOL_NETFLOW:
-    /* TODO: add more protocols (if any missing) */
-    return(1);
-  }
-
-  return(0);
-}
-
-/* ****************************************************** */
-
 static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str, struct ndpi_flow_struct *flow,
                                    u_int8_t proto, u_int16_t sport, u_int16_t dport, u_int8_t *user_defined_proto) {
   struct ndpi_packet_struct *packet = &ndpi_str->packet;
@@ -8077,19 +8059,10 @@ ndpi_protocol ndpi_detection_giveup(struct ndpi_detection_module_struct *ndpi_st
   }
   /* Classification by-port */
   if((ndpi_str->cfg.guess_on_giveup & NDPI_GIVEUP_GUESS_BY_PORT) &&
-     ret.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN) {
-
-    /* Ignore guessed protocol if they have been discarded */
-    if(flow->guessed_protocol_id != NDPI_PROTOCOL_UNKNOWN &&
-       flow->l4_proto == IPPROTO_UDP &&
-       NDPI_ISSET(&flow->excluded_protocol_bitmask, flow->guessed_protocol_id) &&
-       is_udp_not_guessable_protocol(flow->guessed_protocol_id))
-      flow->guessed_protocol_id = NDPI_PROTOCOL_UNKNOWN;
-
-    if(flow->guessed_protocol_id != NDPI_PROTOCOL_UNKNOWN) {
-      ndpi_set_detected_protocol(ndpi_str, flow, flow->guessed_protocol_id, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_MATCH_BY_PORT);
-      ret.proto.app_protocol = flow->detected_protocol_stack[0];
-    }
+     ret.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN &&
+     flow->guessed_protocol_id != NDPI_PROTOCOL_UNKNOWN) {
+    ndpi_set_detected_protocol(ndpi_str, flow, flow->guessed_protocol_id, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_MATCH_BY_PORT);
+    ret.proto.app_protocol = flow->detected_protocol_stack[0];
   }
   /* Classification by-ip, as last effort if guess_ip_before_port is disabled*/
   if(!(ndpi_str->cfg.guess_ip_before_port) &&
