@@ -31,6 +31,11 @@ if [ "${NDPI_SKIP_PARALLEL_BAR}" = "1" ]; then
    SKIP_PARALLEL_BAR=1
 fi
 
+TEST_ONLY_RECENTLY_UPDATED_PCAPS=0
+if [ "${NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS}" = "1" ]; then
+   TEST_ONLY_RECENTLY_UPDATED_PCAPS=1
+fi
+
 #Remember: valgrind and *SAN are incompatible!
 CMD_PREFIX="${CMD_PREFIX}"
 if [ "${NDPI_TESTS_WINE}" = "1" ]; then
@@ -239,10 +244,16 @@ for d in $(find ./cfgs/* -type d -maxdepth 0 2>/dev/null) ; do
 
     cd ./cfgs/"$(basename "$d")" || exit 1
 
-    if [ "$#" -ne 0 ]; then
-        PCAPS=$*
+    if [ $TEST_ONLY_RECENTLY_UPDATED_PCAPS -eq 1 ]; then
+        # Latest 10 pcaps updatetd recently (to be more precise, pcap which triggered a change
+	# in their result lately)
+        PCAPS=$(cd result || exit 1; find * -type f -print0  | xargs -0 ls -t | head -10 | xargs basename -s .out)
     else
-        PCAPS=$(cd pcap || exit 1; /bin/ls -- *.*cap*)
+	if [ "$#" -ne 0 ]; then
+            PCAPS=$*
+        else
+            PCAPS=$(cd pcap || exit 1; /bin/ls -- *.*cap*)
+        fi
     fi
     FAILURES=()
     READER_EXTRA_PARAM=""

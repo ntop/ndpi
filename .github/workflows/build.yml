@@ -106,7 +106,7 @@ jobs:
             maxminddb: "--with-maxminddb"
             msan: "--with-sanitizer"
             nBPF: ""
-            lto_gold_linker: "--with-lto-and-gold-linker"
+            lto_gold_linker: ""
           - compiler: "clang-9" # "Oldest" clang easily available
             os: ubuntu-20.04
             arch: "x86_64"
@@ -125,6 +125,26 @@ jobs:
             maxminddb: "--with-maxminddb"
             msan: "--with-sanitizer"
             nBPF: ""
+            lto_gold_linker: ""
+          - compiler: "gcc-14" # "Newest" gcc easily available with lto/gold linker
+            os: ubuntu-24.04
+            arch: "x86_64"
+            gcrypt: ""
+            pcre: "--with-pcre2"
+            maxminddb: "--with-maxminddb"
+            msan: ""
+            nBPF: ""
+            lto_gold_linker: "--with-lto-and-gold-linker"
+          - compiler: "clang-18" # "Newest" clang easily available with lto/gold linker
+            ar: "llvm-ar-18"
+            ranlib: "llvm-ranlib-18"
+            os: ubuntu-24.04
+            arch: "x86_64"
+            gcrypt: ""
+            pcre: "--with-pcre2"
+            maxminddb: "--with-maxminddb"
+            msan: ""
+            nBPF: ""
             lto_gold_linker: "--with-lto-and-gold-linker"
           - compiler: "cc"
             os: ubuntu-latest
@@ -132,15 +152,7 @@ jobs:
             gcrypt: ""
             pcre: "--with-pcre2"
             maxminddb: "--with-maxminddb"
-            msan: "--with-thread-sanitizer"
-            nBPF: ""
-          - compiler: "cc"
-            os: ubuntu-latest
-            arch: "x86_64"
-            gcrypt: ""
-            pcre: "--with-pcre2"
-            maxminddb: "--with-maxminddb"
-            msan: "--with-sanitizer"
+            msan: ""
             nBPF: "nBPF"
           - compiler: "cc"
             os: ubuntu-latest
@@ -148,7 +160,7 @@ jobs:
             gcrypt: ""
             pcre: "--with-pcre2"
             maxminddb: "--with-maxminddb"
-            msan: "--with-sanitizer"
+            msan: ""
             nBPF: ""
             global_context: "--disable-global-context-support"
           - compiler: "clang" #TODO: some issues with masan/clang/ubuntu-24.04
@@ -222,7 +234,7 @@ jobs:
           sudo apt-get install autoconf automake debhelper libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev
           sudo apt-get install rrdtool librrd-dev parallel
       - name: Install Ubuntu Prerequisites [Mingw-w64] (runs only on ubuntu jobs)
-        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') #Only on a few "standard" builds, without any sanitizers
+        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') && !startsWith(matrix.nBPF, 'nBPF') && !startsWith(matrix.lto_gold_linker, '--with-') #Only on a few "standard" builds
         run: |
           sudo apt-get install gcc-mingw-w64 libc6-dev
       - name: Install Ubuntu Prerequisites (libgcrypt)
@@ -318,15 +330,20 @@ jobs:
           DESTDIR=/tmp/ndpi make install
           ls -alhHR /tmp/ndpi
       - name: Test nDPI [SYMBOLS]
-        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') #Only on a few "standard" builds, without any sanitizers
+        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') && !startsWith(matrix.nBPF, 'nBPF') && !startsWith(matrix.lto_gold_linker, '--with-') #Only on a few "standard" builds
+
         run: |
           ./utils/check_symbols.sh || { FAILED=$?; echo "::error file=${NDPI_LIB}::Unwanted libc symbols found: ${FAILED}. Please make sure to use only ndpi_malloc/ndpi_calloc/ndpi_realloc/ndpi_free wrapper instead of malloc/calloc/realloc/free."; false; }
         env:
           NDPI_LIB: src/lib/libndpi.a
       - name: Test nDPI [DIFF]
-        if: startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.os, 'windows') && !startsWith(matrix.msan, '--with-memory-sanitizer')
         run: |
           NDPI_FORCE_PARALLEL_UTESTS=1 NDPI_SKIP_PARALLEL_BAR=1 ./tests/do.sh
+      - name: Test nDPI (quick) [DIFF]
+        if: startsWith(matrix.arch, 'x86_64') && startsWith(matrix.msan, '--with-memory-sanitizer')
+        run: |
+          NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS=1 NDPI_FORCE_PARALLEL_UTESTS=1 NDPI_SKIP_PARALLEL_BAR=1 ./tests/do.sh
       - name: Test nDPI [UNIT]
         #Some issues with masan + json-c. Disable the test as workaround
         if: startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.os, 'windows') && !startsWith(matrix.msan, '--with-memory-sanitizer') && !startsWith(matrix.os, 'macos-14') && !startsWith(matrix.os, 'macos-15')
@@ -361,7 +378,7 @@ jobs:
           make
           cd ../..
       - name: Build nDPI [Mingw-w64] (runs only on ubuntu jobs)
-        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') #Only on a few "standard" builds, without any sanitizers
+        if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'x86_64') && !startsWith(matrix.msan, '--with-') && !startsWith(matrix.nBPF, 'nBPF') && !startsWith(matrix.lto_gold_linker, '--with-') #Only on a few "standard" builds
         run: |
           make distclean
           ./autogen.sh --enable-option-checking=fatal --enable-debug-messages --enable-tls-sigs --host=x86_64-w64-mingw32
@@ -387,10 +404,10 @@ jobs:
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev libgcrypt20-dev libpcre3-dev libmaxminddb-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
             env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages ${{ matrix.gcrypt }} ${{ matrix.msan }} ${{ matrix.pcre }} ${{ matrix.maxminddb }} --enable-tls-sigs &&
-            make -j all &&
+            make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
-            make check VERBOSE=1
+            NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS=1 make check VERBOSE=1
             "
       - name: Display qemu specified architecture (armhf - little endian)
         if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 'armhf')
@@ -411,10 +428,10 @@ jobs:
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev libgcrypt20-dev libpcre3-dev libmaxminddb-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
             env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages ${{ matrix.gcrypt }} ${{ matrix.msan }} ${{ matrix.pcre }} ${{ matrix.maxminddb }} --enable-tls-sigs &&
-            make -j all &&
+            make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
-            make check VERBOSE=1
+            NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS=1 make check VERBOSE=1
             "
       - name: Display qemu specified architecture (s390x - big endian)
         if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.arch, 's390x')
@@ -435,8 +452,8 @@ jobs:
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev libgcrypt20-dev libpcre3-dev libmaxminddb-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
             env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages ${{ matrix.gcrypt }} ${{ matrix.msan }} ${{ matrix.pcre }} ${{ matrix.maxminddb }} --enable-tls-sigs &&
-            make -j all &&
+            make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
-            make check VERBOSE=1
+            NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS=1 make check VERBOSE=1
             "

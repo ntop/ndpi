@@ -109,3 +109,26 @@ jobs:
           name: ndpi-performance
           path: ndpi-performance-upload
           retention-days: 7
+
+  thread-sanitizer:
+    name: Thread-Sanitizer (ubuntu-latest)
+    runs-on: ubuntu-latest
+    env:
+      CFLAGS: -Werror
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Ubuntu Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install autoconf automake libtool pkg-config gettext flex bison libpcap-dev libjson-c-dev rrdtool librrd-dev parallel
+      - name: Configure nDPI library
+        run: |
+          ./autogen.sh --enable-option-checking=fatal --with-thread-sanitizer
+      - name: Build nDPI library
+        run: |
+          make -j all
+      - name: Test nDPI
+        run: |
+          NDPI_FORCE_PARALLEL_UTESTS=1 NDPI_SKIP_PARALLEL_BAR=1 ./tests/do.sh

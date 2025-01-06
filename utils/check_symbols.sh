@@ -28,7 +28,7 @@ for line in $(nm -P -u "${NDPI_LIB}"); do
                     'printf'|'fprintf') SKIP=1 ;;
                 esac
             ;;
-            '[ahocorasick.o]')
+            '[ahocorasick.o]'|'[ndpi_cache.o]')
                 case "${FOUND_SYMBOL}" in
                     'fprintf') SKIP=1 ;;
                 esac

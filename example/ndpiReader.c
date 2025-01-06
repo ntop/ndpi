@@ -4015,7 +4015,7 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 
     /* LRU caches */
     for(i = 0; i < NDPI_LRUCACHE_MAX; i++) {
-      struct ndpi_lru_cache_stats s;
+      struct ndpi_lru_cache_stats s = { 0 };
       int scope;
       char param[64];
 
@@ -4035,7 +4035,7 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 
     /* Automas */
     for(i = 0; i < NDPI_AUTOMA_MAX; i++) {
-      struct ndpi_automa_stats s;
+      struct ndpi_automa_stats s = { 0 };
       ndpi_get_automa_stats(ndpi_thread_info[thread_id].workflow->ndpi_struct, i, &s);
       cumulative_stats.automa_stats[i].n_search += s.n_search;
       cumulative_stats.automa_stats[i].n_found += s.n_found;
@@ -4043,7 +4043,7 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 
     /* Patricia trees */
     for(i = 0; i < NDPI_PTREE_MAX; i++) {
-      struct ndpi_patricia_tree_stats s;
+      struct ndpi_patricia_tree_stats s = { 0 };
       ndpi_get_patricia_stats(ndpi_thread_info[thread_id].workflow->ndpi_struct, i, &s);
       cumulative_stats.patricia_stats[i].n_search += s.n_search;
       cumulative_stats.patricia_stats[i].n_found += s.n_found;
