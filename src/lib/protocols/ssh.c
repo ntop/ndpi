@@ -111,9 +111,9 @@ static void ssh_analyze_signature_version(struct ndpi_flow_struct *flow,
   }
   
   if(obsolete_ssh_version)
-    NDPI_SET_BIT(flow->risk,
-		 is_client_signature ? NDPI_SSH_OBSOLETE_CLIENT_VERSION_OR_CIPHER :
-		 NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER);
+    ndpi_set_risk(flow,
+                  (is_client_signature ? NDPI_SSH_OBSOLETE_CLIENT_VERSION_OR_CIPHER : NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER),
+                  NULL);
 }
   
 /* ************************************************************************ */
