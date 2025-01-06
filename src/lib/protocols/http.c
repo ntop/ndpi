@@ -1148,9 +1148,6 @@ static void check_content_type_and_change_protocol(struct ndpi_detection_module_
     ndpi_check_dga_name(ndpi_struct, flow, flow->host_server_name, 1, 0);
   }
 
-  if(flow->guessed_protocol_id == NDPI_PROTOCOL_UNKNOWN)
-    flow->guessed_protocol_id = NDPI_PROTOCOL_HTTP;
-
   ndpi_check_http_header(ndpi_struct, flow);
 }
 

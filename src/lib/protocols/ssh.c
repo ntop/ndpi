@@ -441,7 +441,7 @@ static void ndpi_search_ssh_tcp(struct ndpi_detection_module_struct *ndpi_struct
 #endif
       
       NDPI_LOG_DBG2(ndpi_struct, "ssh stage 1 passed\n");
-      flow->guessed_protocol_id = NDPI_PROTOCOL_SSH;
+      flow->fast_callback_protocol_id = NDPI_PROTOCOL_SSH;
       
 #ifdef SSH_DEBUG
       printf("[SSH] [completed stage: %u]\n", flow->l4.tcp.ssh_stage);

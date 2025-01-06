@@ -1299,9 +1299,9 @@ static int processTLSBlock(struct ndpi_detection_module_struct *ndpi_struct,
 /* **************************************** */
 
 static void ndpi_looks_like_tls(struct ndpi_detection_module_struct *ndpi_struct,
-				struct ndpi_flow_struct *flow) {
-  if(flow->guessed_protocol_id == NDPI_PROTOCOL_UNKNOWN)
-    flow->guessed_protocol_id = __get_master(ndpi_struct, flow);
+                                struct ndpi_flow_struct *flow) {
+  if(flow->fast_callback_protocol_id == NDPI_PROTOCOL_UNKNOWN)
+    flow->fast_callback_protocol_id = __get_master(ndpi_struct, flow);
 }
 
 /* **************************************** */
@@ -3352,9 +3352,8 @@ static void ndpi_search_tls_wrapper(struct ndpi_detection_module_struct *ndpi_st
   int rc = 0;
 
 #ifdef DEBUG_TLS
-  printf("==>> %s() %u [len: %u][version: %u]\n",
+  printf("==>> %s() [len: %u][version: %u]\n",
 	 __FUNCTION__,
-	 flow->guessed_protocol_id_by_ip,
 	 packet->payload_packet_len,
 	 flow->protos.tls_quic.ssl_version);
 #endif

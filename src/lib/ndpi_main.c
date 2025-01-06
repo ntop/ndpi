@@ -7427,8 +7427,11 @@ static u_int32_t check_ndpi_detection_func(struct ndpi_detection_module_struct *
 					   int is_tcp_without_payload) {
   void *func = NULL;
   u_int32_t num_calls = 0;
-  u_int16_t proto_index = ndpi_str->proto_defaults[flow->guessed_protocol_id].protoIdx;
-  u_int16_t proto_id = ndpi_str->proto_defaults[flow->guessed_protocol_id].protoId;
+  /* First callback is associated to classification by-port,
+     if we don't already have a partial classification */
+  u_int16_t fast_callback_protocol_id = flow->fast_callback_protocol_id ? flow->fast_callback_protocol_id : flow->guessed_protocol_id;
+  u_int16_t proto_index = ndpi_str->proto_defaults[fast_callback_protocol_id].protoIdx;
+  u_int16_t proto_id = ndpi_str->proto_defaults[fast_callback_protocol_id].protoId;
   NDPI_PROTOCOL_BITMASK detection_bitmask;
   u_int32_t a;
 
@@ -7441,14 +7444,14 @@ static u_int32_t check_ndpi_detection_func(struct ndpi_detection_module_struct *
       (ndpi_str->callback_buffer[proto_index].ndpi_selection_bitmask & ndpi_selection_packet) ==
       ndpi_str->callback_buffer[proto_index].ndpi_selection_bitmask)
     {
-      if((flow->guessed_protocol_id != NDPI_PROTOCOL_UNKNOWN) &&
-          (ndpi_str->proto_defaults[flow->guessed_protocol_id].func != NULL) &&
+      if((fast_callback_protocol_id != NDPI_PROTOCOL_UNKNOWN) &&
+          (ndpi_str->proto_defaults[fast_callback_protocol_id].func != NULL) &&
           (is_tcp_without_payload == 0 ||
            ((ndpi_str->callback_buffer[proto_index].ndpi_selection_bitmask &
 	     NDPI_SELECTION_BITMASK_PROTOCOL_HAS_PAYLOAD) == 0)))
 	{
-	  ndpi_str->proto_defaults[flow->guessed_protocol_id].func(ndpi_str, flow);
-	  func = ndpi_str->proto_defaults[flow->guessed_protocol_id].func;
+	  ndpi_str->proto_defaults[fast_callback_protocol_id].func(ndpi_str, flow);
+	  func = ndpi_str->proto_defaults[fast_callback_protocol_id].func;
 	  num_calls++;
 	}
     }
@@ -8013,6 +8016,12 @@ ndpi_protocol ndpi_detection_giveup(struct ndpi_detection_module_struct *ndpi_st
   if(ret.proto.app_protocol != NDPI_PROTOCOL_UNKNOWN)
     return(ret);
 
+  /* Partial classification */
+  if(flow->fast_callback_protocol_id != NDPI_PROTOCOL_UNKNOWN) {
+    ndpi_set_detected_protocol(ndpi_str, flow, flow->fast_callback_protocol_id, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI_PARTIAL);
+    ret.proto.app_protocol = flow->detected_protocol_stack[0];
+  }
+
   /* Check some caches */
 
   /* Does it looks like BitTorrent? */
@@ -8549,6 +8558,7 @@ static int ndpi_do_guess(struct ndpi_detection_module_struct *ndpi_str, struct n
 							    ntohs(flow->c_port), ntohs(flow->s_port),
 							    &user_defined_proto);
     flow->guessed_protocol_id_by_ip = ndpi_guess_host_protocol_id(ndpi_str, flow);
+    flow->fast_callback_protocol_id = NDPI_PROTOCOL_UNKNOWN;
 
     ret->protocol_by_ip = flow->guessed_protocol_id_by_ip;
 
