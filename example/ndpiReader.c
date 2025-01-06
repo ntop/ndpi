@@ -3303,15 +3303,15 @@ static void printFlowsStats() {
   }
 
   if(verbose) {
-    ndpi_host_ja3_fingerprints *ja3ByHostsHashT = NULL; // outer hash table
-    ndpi_ja3_fingerprints_host *hostByJA3C_ht = NULL;   // for client
-    ndpi_ja3_fingerprints_host *hostByJA3S_ht = NULL;   // for server
+    ndpi_host_ja_fingerprints *jaByHostsHashT = NULL; // outer hash table
+    ndpi_ja_fingerprints_host *hostByJA4C_ht = NULL;   // for client
+    ndpi_ja_fingerprints_host *hostByJA3S_ht = NULL;   // for server
     unsigned int i;
-    ndpi_host_ja3_fingerprints *ja3ByHost_element = NULL;
-    ndpi_ja3_info *info_of_element = NULL;
-    ndpi_host_ja3_fingerprints *tmp = NULL;
-    ndpi_ja3_info *tmp2 = NULL;
-    unsigned int num_ja3_ja4_client;
+    ndpi_host_ja_fingerprints *jaByHost_element = NULL;
+    ndpi_ja_info *info_of_element = NULL;
+    ndpi_host_ja_fingerprints *tmp = NULL;
+    ndpi_ja_info *tmp2 = NULL;
+    unsigned int num_ja4_client;
     unsigned int num_ja3_server;
 
     fprintf(out, "\n");
@@ -3324,167 +3324,170 @@ static void printFlowsStats() {
     }
 
     if((verbose == 2) || (verbose == 3)) {
+
+      /* We are going to print JA4C and JA3S stats */
+
       for(i = 0; i < num_flows; i++) {
-        ndpi_host_ja3_fingerprints *ja3ByHostFound = NULL;
-        ndpi_ja3_fingerprints_host *hostByJA3Found = NULL;
+        ndpi_host_ja_fingerprints *jaByHostFound = NULL;
+        ndpi_ja_fingerprints_host *hostByJAFound = NULL;
 
         //check if this is a ssh-ssl flow
-        if(all_flows[i].flow->ssh_tls.ja3_client[0] != '\0') {
+        if(all_flows[i].flow->ssh_tls.ja4_client[0] != '\0') {
           //looking if the host is already in the hash table
-          HASH_FIND_INT(ja3ByHostsHashT, &(all_flows[i].flow->src_ip), ja3ByHostFound);
+          HASH_FIND_INT(jaByHostsHashT, &(all_flows[i].flow->src_ip), jaByHostFound);
 
-          //host ip -> ja3
-          if(ja3ByHostFound == NULL) {
+          //host ip -> ja4c
+          if(jaByHostFound == NULL) {
             //adding the new host
-            ndpi_host_ja3_fingerprints *newHost = ndpi_malloc(sizeof(ndpi_host_ja3_fingerprints));
+            ndpi_host_ja_fingerprints *newHost = ndpi_malloc(sizeof(ndpi_host_ja_fingerprints));
             newHost->host_client_info_hasht = NULL;
             newHost->host_server_info_hasht = NULL;
             newHost->ip_string = all_flows[i].flow->src_name;
             newHost->ip = all_flows[i].flow->src_ip;
             newHost->dns_name = all_flows[i].flow->host_server_name;
 
-            ndpi_ja3_info *newJA3 = ndpi_malloc(sizeof(ndpi_ja3_info));
-            newJA3->ja3 = all_flows[i].flow->ssh_tls.ja3_client;
-            newJA3->unsafe_cipher = all_flows[i].flow->ssh_tls.client_unsafe_cipher;
-            //adding the new ja3 fingerprint
+            ndpi_ja_info *newJA = ndpi_malloc(sizeof(ndpi_ja_info));
+            newJA->ja = all_flows[i].flow->ssh_tls.ja4_client;
+            newJA->unsafe_cipher = all_flows[i].flow->ssh_tls.client_unsafe_cipher;
+            //adding the new ja4c fingerprint
             HASH_ADD_KEYPTR(hh, newHost->host_client_info_hasht,
-                            newJA3->ja3, strlen(newJA3->ja3), newJA3);
+                            newJA->ja, strlen(newJA->ja), newJA);
             //adding the new host
-            HASH_ADD_INT(ja3ByHostsHashT, ip, newHost);
+            HASH_ADD_INT(jaByHostsHashT, ip, newHost);
           } else {
             //host already in the hash table
-            ndpi_ja3_info *infoFound = NULL;
+            ndpi_ja_info *infoFound = NULL;
 
-            HASH_FIND_STR(ja3ByHostFound->host_client_info_hasht,
-                          all_flows[i].flow->ssh_tls.ja3_client, infoFound);
+            HASH_FIND_STR(jaByHostFound->host_client_info_hasht,
+                          all_flows[i].flow->ssh_tls.ja4_client, infoFound);
 
             if(infoFound == NULL) {
-              ndpi_ja3_info *newJA3 = ndpi_malloc(sizeof(ndpi_ja3_info));
-              newJA3->ja3 = all_flows[i].flow->ssh_tls.ja3_client;
-              newJA3->unsafe_cipher = all_flows[i].flow->ssh_tls.client_unsafe_cipher;
-              HASH_ADD_KEYPTR(hh, ja3ByHostFound->host_client_info_hasht,
-                              newJA3->ja3, strlen(newJA3->ja3), newJA3);
+              ndpi_ja_info *newJA = ndpi_malloc(sizeof(ndpi_ja_info));
+              newJA->ja = all_flows[i].flow->ssh_tls.ja4_client;
+              newJA->unsafe_cipher = all_flows[i].flow->ssh_tls.client_unsafe_cipher;
+              HASH_ADD_KEYPTR(hh, jaByHostFound->host_client_info_hasht,
+                              newJA->ja, strlen(newJA->ja), newJA);
             }
           }
 
-          //ja3 -> host ip
-          HASH_FIND_STR(hostByJA3C_ht, all_flows[i].flow->ssh_tls.ja3_client, hostByJA3Found);
-          if(hostByJA3Found == NULL) {
+          //ja4c -> host ip
+          HASH_FIND_STR(hostByJA4C_ht, all_flows[i].flow->ssh_tls.ja4_client, hostByJAFound);
+          if(hostByJAFound == NULL) {
             ndpi_ip_dns *newHost = ndpi_malloc(sizeof(ndpi_ip_dns));
 
             newHost->ip = all_flows[i].flow->src_ip;
             newHost->ip_string = all_flows[i].flow->src_name;
             newHost->dns_name = all_flows[i].flow->host_server_name;
 
-            ndpi_ja3_fingerprints_host *newElement = ndpi_malloc(sizeof(ndpi_ja3_fingerprints_host));
-            newElement->ja3 = all_flows[i].flow->ssh_tls.ja3_client;
+            ndpi_ja_fingerprints_host *newElement = ndpi_malloc(sizeof(ndpi_ja_fingerprints_host));
+            newElement->ja = all_flows[i].flow->ssh_tls.ja4_client;
             newElement->unsafe_cipher = all_flows[i].flow->ssh_tls.client_unsafe_cipher;
             newElement->ipToDNS_ht = NULL;
 
             HASH_ADD_INT(newElement->ipToDNS_ht, ip, newHost);
-            HASH_ADD_KEYPTR(hh, hostByJA3C_ht, newElement->ja3, strlen(newElement->ja3),
+            HASH_ADD_KEYPTR(hh, hostByJA4C_ht, newElement->ja, strlen(newElement->ja),
                             newElement);
           } else {
             ndpi_ip_dns *innerElement = NULL;
-            HASH_FIND_INT(hostByJA3Found->ipToDNS_ht, &(all_flows[i].flow->src_ip), innerElement);
+            HASH_FIND_INT(hostByJAFound->ipToDNS_ht, &(all_flows[i].flow->src_ip), innerElement);
             if(innerElement == NULL) {
               ndpi_ip_dns *newInnerElement = ndpi_malloc(sizeof(ndpi_ip_dns));
               newInnerElement->ip = all_flows[i].flow->src_ip;
               newInnerElement->ip_string = all_flows[i].flow->src_name;
               newInnerElement->dns_name = all_flows[i].flow->host_server_name;
-              HASH_ADD_INT(hostByJA3Found->ipToDNS_ht, ip, newInnerElement);
+              HASH_ADD_INT(hostByJAFound->ipToDNS_ht, ip, newInnerElement);
             }
           }
         }
 
         if(all_flows[i].flow->ssh_tls.ja3_server[0] != '\0') {
           //looking if the host is already in the hash table
-          HASH_FIND_INT(ja3ByHostsHashT, &(all_flows[i].flow->dst_ip), ja3ByHostFound);
-          if(ja3ByHostFound == NULL) {
+          HASH_FIND_INT(jaByHostsHashT, &(all_flows[i].flow->dst_ip), jaByHostFound);
+          if(jaByHostFound == NULL) {
             //adding the new host in the hash table
-            ndpi_host_ja3_fingerprints *newHost = ndpi_malloc(sizeof(ndpi_host_ja3_fingerprints));
+            ndpi_host_ja_fingerprints *newHost = ndpi_malloc(sizeof(ndpi_host_ja_fingerprints));
             newHost->host_client_info_hasht = NULL;
             newHost->host_server_info_hasht = NULL;
             newHost->ip_string = all_flows[i].flow->dst_name;
             newHost->ip = all_flows[i].flow->dst_ip;
             newHost->dns_name = all_flows[i].flow->ssh_tls.server_info;
 
-            ndpi_ja3_info *newJA3 = ndpi_malloc(sizeof(ndpi_ja3_info));
-            newJA3->ja3 = all_flows[i].flow->ssh_tls.ja3_server;
-            newJA3->unsafe_cipher = all_flows[i].flow->ssh_tls.server_unsafe_cipher;
-            //adding the new ja3 fingerprint
-            HASH_ADD_KEYPTR(hh, newHost->host_server_info_hasht, newJA3->ja3,
-                            strlen(newJA3->ja3), newJA3);
+            ndpi_ja_info *newJA = ndpi_malloc(sizeof(ndpi_ja_info));
+            newJA->ja = all_flows[i].flow->ssh_tls.ja3_server;
+            newJA->unsafe_cipher = all_flows[i].flow->ssh_tls.server_unsafe_cipher;
+            //adding the new ja3s fingerprint
+            HASH_ADD_KEYPTR(hh, newHost->host_server_info_hasht, newJA->ja,
+                            strlen(newJA->ja), newJA);
             //adding the new host
-            HASH_ADD_INT(ja3ByHostsHashT, ip, newHost);
+            HASH_ADD_INT(jaByHostsHashT, ip, newHost);
           } else {
             //host already in the hashtable
-            ndpi_ja3_info *infoFound = NULL;
-            HASH_FIND_STR(ja3ByHostFound->host_server_info_hasht,
+            ndpi_ja_info *infoFound = NULL;
+            HASH_FIND_STR(jaByHostFound->host_server_info_hasht,
                           all_flows[i].flow->ssh_tls.ja3_server, infoFound);
             if(infoFound == NULL) {
-              ndpi_ja3_info *newJA3 = ndpi_malloc(sizeof(ndpi_ja3_info));
-              newJA3->ja3 = all_flows[i].flow->ssh_tls.ja3_server;
-              newJA3->unsafe_cipher = all_flows[i].flow->ssh_tls.server_unsafe_cipher;
-              HASH_ADD_KEYPTR(hh, ja3ByHostFound->host_server_info_hasht,
-                              newJA3->ja3, strlen(newJA3->ja3), newJA3);
+              ndpi_ja_info *newJA = ndpi_malloc(sizeof(ndpi_ja_info));
+              newJA->ja = all_flows[i].flow->ssh_tls.ja3_server;
+              newJA->unsafe_cipher = all_flows[i].flow->ssh_tls.server_unsafe_cipher;
+              HASH_ADD_KEYPTR(hh, jaByHostFound->host_server_info_hasht,
+                              newJA->ja, strlen(newJA->ja), newJA);
             }
           }
 
-          HASH_FIND_STR(hostByJA3S_ht, all_flows[i].flow->ssh_tls.ja3_server, hostByJA3Found);
-          if(hostByJA3Found == NULL) {
+          HASH_FIND_STR(hostByJA3S_ht, all_flows[i].flow->ssh_tls.ja3_server, hostByJAFound);
+          if(hostByJAFound == NULL) {
             ndpi_ip_dns *newHost = ndpi_malloc(sizeof(ndpi_ip_dns));
 
             newHost->ip = all_flows[i].flow->dst_ip;
             newHost->ip_string = all_flows[i].flow->dst_name;
             newHost->dns_name = all_flows[i].flow->ssh_tls.server_info;;
 
-            ndpi_ja3_fingerprints_host *newElement = ndpi_malloc(sizeof(ndpi_ja3_fingerprints_host));
-            newElement->ja3 = all_flows[i].flow->ssh_tls.ja3_server;
+            ndpi_ja_fingerprints_host *newElement = ndpi_malloc(sizeof(ndpi_ja_fingerprints_host));
+            newElement->ja = all_flows[i].flow->ssh_tls.ja3_server;
             newElement->unsafe_cipher = all_flows[i].flow->ssh_tls.server_unsafe_cipher;
             newElement->ipToDNS_ht = NULL;
 
             HASH_ADD_INT(newElement->ipToDNS_ht, ip, newHost);
-            HASH_ADD_KEYPTR(hh, hostByJA3S_ht, newElement->ja3, strlen(newElement->ja3),
+            HASH_ADD_KEYPTR(hh, hostByJA3S_ht, newElement->ja, strlen(newElement->ja),
                             newElement);
           } else {
             ndpi_ip_dns *innerElement = NULL;
 
-            HASH_FIND_INT(hostByJA3Found->ipToDNS_ht, &(all_flows[i].flow->dst_ip), innerElement);
+            HASH_FIND_INT(hostByJAFound->ipToDNS_ht, &(all_flows[i].flow->dst_ip), innerElement);
             if(innerElement == NULL) {
               ndpi_ip_dns *newInnerElement = ndpi_malloc(sizeof(ndpi_ip_dns));
               newInnerElement->ip = all_flows[i].flow->dst_ip;
               newInnerElement->ip_string = all_flows[i].flow->dst_name;
               newInnerElement->dns_name = all_flows[i].flow->ssh_tls.server_info;
-              HASH_ADD_INT(hostByJA3Found->ipToDNS_ht, ip, newInnerElement);
+              HASH_ADD_INT(hostByJAFound->ipToDNS_ht, ip, newInnerElement);
             }
           }
         }
       }
 
-      if(ja3ByHostsHashT) {
-        ndpi_ja3_fingerprints_host *hostByJA3Element = NULL;
-        ndpi_ja3_fingerprints_host *tmp3 = NULL;
+      if(jaByHostsHashT) {
+        ndpi_ja_fingerprints_host *hostByJAElement = NULL;
+        ndpi_ja_fingerprints_host *tmp3 = NULL;
         ndpi_ip_dns *innerHashEl = NULL;
         ndpi_ip_dns *tmp4 = NULL;
 
         if(verbose == 2) {
-          /* for each host the number of flow with a ja3 fingerprint is printed */
+          /* for each host the number of flow with a ja4c fingerprint is printed */
           i = 1;
 
-          fprintf(out, "JA3 Host Stats: \n");
-          fprintf(out, "\t\t IP %-24s \t %-10s \n", "Address", "# JA3C");
+          fprintf(out, "JA Host Stats: \n");
+          fprintf(out, "\t\t IP %-24s \t %-10s \n", "Address", "# JA4C");
 
-          for(ja3ByHost_element = ja3ByHostsHashT; ja3ByHost_element != NULL;
-              ja3ByHost_element = ja3ByHost_element->hh.next) {
-            num_ja3_ja4_client = HASH_COUNT(ja3ByHost_element->host_client_info_hasht);
-            num_ja3_server = HASH_COUNT(ja3ByHost_element->host_server_info_hasht);
+          for(jaByHost_element = jaByHostsHashT; jaByHost_element != NULL;
+              jaByHost_element = jaByHost_element->hh.next) {
+            num_ja4_client = HASH_COUNT(jaByHost_element->host_client_info_hasht);
+            num_ja3_server = HASH_COUNT(jaByHost_element->host_server_info_hasht);
 
-            if(num_ja3_ja4_client > 0) {
+            if(num_ja4_client > 0) {
               fprintf(out, "\t%d\t %-24s \t %-7u\n",
                       i,
-                      ja3ByHost_element->ip_string,
-                      num_ja3_ja4_client
+                      jaByHost_element->ip_string,
+                      num_ja4_client
                       );
               i++;
             }
@@ -3493,31 +3496,31 @@ static void printFlowsStats() {
         } else if(verbose == 3) {
           int i = 1;
           int againstRepeat;
-          ndpi_ja3_fingerprints_host *hostByJA3Element = NULL;
-          ndpi_ja3_fingerprints_host *tmp3 = NULL;
+          ndpi_ja_fingerprints_host *hostByJAElement = NULL;
+          ndpi_ja_fingerprints_host *tmp3 = NULL;
           ndpi_ip_dns *innerHashEl = NULL;
           ndpi_ip_dns *tmp4 = NULL;
 
-          //for each host it is printted the JA3C and JA3S, along the server name (if any)
+          //for each host it is printted the JA4C and JA3S, along the server name (if any)
           //and the security status
 
-          fprintf(out, "JA3C/JA3S Host Stats: \n");
-          fprintf(out, "\t%-7s %-24s %-34s %s\n", "", "IP", "JA3C", "JA3S");
+          fprintf(out, "JA4C/JA3S Host Stats: \n");
+          fprintf(out, "\t%-7s %-24s %-44s %s\n", "", "IP", "JA4C", "JA3S");
 
           //reminder
-          //ja3ByHostsHashT: hash table <ip, (ja3, ht_client, ht_server)>
-          //ja3ByHost_element: element of ja3ByHostsHashT
-          //info_of_element: element of the inner hash table of ja3ByHost_element
-          HASH_ITER(hh, ja3ByHostsHashT, ja3ByHost_element, tmp) {
-            num_ja3_ja4_client = HASH_COUNT(ja3ByHost_element->host_client_info_hasht);
-            num_ja3_server = HASH_COUNT(ja3ByHost_element->host_server_info_hasht);
+          //jaByHostsHashT: hash table <ip, (ja, ht_client, ht_server)>
+          //jaByHost_element: element of jaByHostsHashT
+          //info_of_element: element of the inner hash table of jaByHost_element
+          HASH_ITER(hh, jaByHostsHashT, jaByHost_element, tmp) {
+            num_ja4_client = HASH_COUNT(jaByHost_element->host_client_info_hasht);
+            num_ja3_server = HASH_COUNT(jaByHost_element->host_server_info_hasht);
             againstRepeat = 0;
-            if(num_ja3_ja4_client > 0) {
-              HASH_ITER(hh, ja3ByHost_element->host_client_info_hasht, info_of_element, tmp2) {
+            if(num_ja4_client > 0) {
+              HASH_ITER(hh, jaByHost_element->host_client_info_hasht, info_of_element, tmp2) {
                 fprintf(out, "\t%-7d %-24s %s %s\n",
                         i,
-                        ja3ByHost_element->ip_string,
-                        info_of_element->ja3,
+                        jaByHost_element->ip_string,
+                        info_of_element->ja,
                         print_cipher(info_of_element->unsafe_cipher)
                         );
                 againstRepeat = 1;
@@ -3526,16 +3529,16 @@ static void printFlowsStats() {
             }
 
             if(num_ja3_server > 0) {
-              HASH_ITER(hh, ja3ByHost_element->host_server_info_hasht, info_of_element, tmp2) {
-                fprintf(out, "\t%-7d %-24s %-34s %s %s %s%s%s\n",
+              HASH_ITER(hh, jaByHost_element->host_server_info_hasht, info_of_element, tmp2) {
+                fprintf(out, "\t%-7d %-24s %-44s %s %s %s%s%s\n",
                         i,
-                        ja3ByHost_element->ip_string,
+                        jaByHost_element->ip_string,
                         "",
-                        info_of_element->ja3,
+                        info_of_element->ja,
                         print_cipher(info_of_element->unsafe_cipher),
-                        ja3ByHost_element->dns_name[0] ? "[" : "",
-                        ja3ByHost_element->dns_name,
-                        ja3ByHost_element->dns_name[0] ? "]" : ""
+                        jaByHost_element->dns_name[0] ? "[" : "",
+                        jaByHost_element->dns_name,
+                        jaByHost_element->dns_name[0] ? "]" : ""
                         );
                 i++;
               }
@@ -3544,19 +3547,19 @@ static void printFlowsStats() {
 
           i = 1;
 
-          fprintf(out, "\nIP/JA3 Distribution:\n");
-          fprintf(out, "%-15s %-39s %-26s\n", "", "JA3", "IP");
-          HASH_ITER(hh, hostByJA3C_ht, hostByJA3Element, tmp3) {
+          fprintf(out, "\nIP/JA Distribution:\n");
+          fprintf(out, "%-15s %-43s %-26s\n", "", "JA", "IP");
+          HASH_ITER(hh, hostByJA4C_ht, hostByJAElement, tmp3) {
             againstRepeat = 0;
-            HASH_ITER(hh, hostByJA3Element->ipToDNS_ht, innerHashEl, tmp4) {
+            HASH_ITER(hh, hostByJAElement->ipToDNS_ht, innerHashEl, tmp4) {
               if(againstRepeat == 0) {
-                fprintf(out, "\t%-7d JA3C %s",
+                fprintf(out, "\t%-7d JA4C %s",
                         i,
-                        hostByJA3Element->ja3
+                        hostByJAElement->ja
                         );
-                fprintf(out, "   %-15s %s\n",
+                fprintf(out, "   %-20s %s\n",
                         innerHashEl->ip_string,
-                        print_cipher(hostByJA3Element->unsafe_cipher)
+                        print_cipher(hostByJAElement->unsafe_cipher)
                         );
                 againstRepeat = 1;
                 i++;
@@ -3564,22 +3567,22 @@ static void printFlowsStats() {
                 fprintf(out, "\t%45s", "");
                 fprintf(out, "   %-15s %s\n",
                         innerHashEl->ip_string,
-                        print_cipher(hostByJA3Element->unsafe_cipher)
+                        print_cipher(hostByJAElement->unsafe_cipher)
                         );
               }
             }
           }
-          HASH_ITER(hh, hostByJA3S_ht, hostByJA3Element, tmp3) {
+          HASH_ITER(hh, hostByJA3S_ht, hostByJAElement, tmp3) {
             againstRepeat = 0;
-            HASH_ITER(hh, hostByJA3Element->ipToDNS_ht, innerHashEl, tmp4) {
+            HASH_ITER(hh, hostByJAElement->ipToDNS_ht, innerHashEl, tmp4) {
               if(againstRepeat == 0) {
                 fprintf(out, "\t%-7d JA3S %s",
                         i,
-                        hostByJA3Element->ja3
+                        hostByJAElement->ja
                         );
                 fprintf(out, "   %-15s %-10s %s%s%s\n",
                         innerHashEl->ip_string,
-                        print_cipher(hostByJA3Element->unsafe_cipher),
+                        print_cipher(hostByJAElement->unsafe_cipher),
                         innerHashEl->dns_name[0] ? "[" : "",
                         innerHashEl->dns_name,
                         innerHashEl->dns_name[0] ? "]" : ""
@@ -3590,7 +3593,7 @@ static void printFlowsStats() {
                 fprintf(out, "\t%45s", "");
                 fprintf(out, "   %-15s %-10s %s%s%s\n",
                         innerHashEl->ip_string,
-                        print_cipher(hostByJA3Element->unsafe_cipher),
+                        print_cipher(hostByJAElement->unsafe_cipher),
                         innerHashEl->dns_name[0] ? "[" : "",
                         innerHashEl->dns_name,
                         innerHashEl->dns_name[0] ? "]" : ""
@@ -3602,40 +3605,40 @@ static void printFlowsStats() {
         fprintf(out, "\n\n");
 
         //freeing the hash table
-        HASH_ITER(hh, ja3ByHostsHashT, ja3ByHost_element, tmp) {
-          HASH_ITER(hh, ja3ByHost_element->host_client_info_hasht, info_of_element, tmp2) {
-            if(ja3ByHost_element->host_client_info_hasht)
-              HASH_DEL(ja3ByHost_element->host_client_info_hasht, info_of_element);
+        HASH_ITER(hh, jaByHostsHashT, jaByHost_element, tmp) {
+          HASH_ITER(hh, jaByHost_element->host_client_info_hasht, info_of_element, tmp2) {
+            if(jaByHost_element->host_client_info_hasht)
+              HASH_DEL(jaByHost_element->host_client_info_hasht, info_of_element);
             ndpi_free(info_of_element);
           }
-          HASH_ITER(hh, ja3ByHost_element->host_server_info_hasht, info_of_element, tmp2) {
-            if(ja3ByHost_element->host_server_info_hasht)
-              HASH_DEL(ja3ByHost_element->host_server_info_hasht, info_of_element);
+          HASH_ITER(hh, jaByHost_element->host_server_info_hasht, info_of_element, tmp2) {
+            if(jaByHost_element->host_server_info_hasht)
+              HASH_DEL(jaByHost_element->host_server_info_hasht, info_of_element);
             ndpi_free(info_of_element);
           }
-          HASH_DEL(ja3ByHostsHashT, ja3ByHost_element);
-          ndpi_free(ja3ByHost_element);
+          HASH_DEL(jaByHostsHashT, jaByHost_element);
+          ndpi_free(jaByHost_element);
         }
 
-        HASH_ITER(hh, hostByJA3C_ht, hostByJA3Element, tmp3) {
-          HASH_ITER(hh, hostByJA3C_ht->ipToDNS_ht, innerHashEl, tmp4) {
-            if(hostByJA3Element->ipToDNS_ht)
-              HASH_DEL(hostByJA3Element->ipToDNS_ht, innerHashEl);
+        HASH_ITER(hh, hostByJA4C_ht, hostByJAElement, tmp3) {
+          HASH_ITER(hh, hostByJA4C_ht->ipToDNS_ht, innerHashEl, tmp4) {
+            if(hostByJAElement->ipToDNS_ht)
+              HASH_DEL(hostByJAElement->ipToDNS_ht, innerHashEl);
             ndpi_free(innerHashEl);
           }
-          HASH_DEL(hostByJA3C_ht, hostByJA3Element);
-          ndpi_free(hostByJA3Element);
+          HASH_DEL(hostByJA4C_ht, hostByJAElement);
+          ndpi_free(hostByJAElement);
         }
 
-        hostByJA3Element = NULL;
-        HASH_ITER(hh, hostByJA3S_ht, hostByJA3Element, tmp3) {
+        hostByJAElement = NULL;
+        HASH_ITER(hh, hostByJA3S_ht, hostByJAElement, tmp3) {
           HASH_ITER(hh, hostByJA3S_ht->ipToDNS_ht, innerHashEl, tmp4) {
-            if(hostByJA3Element->ipToDNS_ht)
-              HASH_DEL(hostByJA3Element->ipToDNS_ht, innerHashEl);
+            if(hostByJAElement->ipToDNS_ht)
+              HASH_DEL(hostByJAElement->ipToDNS_ht, innerHashEl);
             ndpi_free(innerHashEl);
           }
-          HASH_DEL(hostByJA3S_ht, hostByJA3Element);
-          ndpi_free(hostByJA3Element);
+          HASH_DEL(hostByJA3S_ht, hostByJAElement);
+          ndpi_free(hostByJAElement);
         }
       }
     }

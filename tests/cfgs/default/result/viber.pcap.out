@@ -42,9 +42,9 @@ Acceptable                      61 15685         10
 Fun                            297 105785        13           
 Tracker/Ads                      2 377           1            
 
-JA3 Host Stats: 
-		 IP Address                  	 # JA3C     
-	1	 192.168.0.17             	 2      
+JA Host Stats: 
+		 IP Address                  	 # JA4C     
+	1	 192.168.0.17             	 3      
 
 
 	1	TCP 192.168.0.17:53934 <-> 54.230.93.53:443 [proto: 91.144/TLS.Viber][IP: 265/AmazonAWS][Encrypted][Confidence: DPI][FPC: 144/Viber, Confidence: DNS][DPI packets: 8][cat: Chat/9][43 pkts/4571 bytes <-> 46 pkts/60087 bytes][Goodput ratio: 38/95][5.64 sec][Hostname/SNI: dl-media.viber.com][(Advertised) ALPNs: h2;http/1.1][(Negotiated) ALPN: http/1.1][bytes ratio: -0.859 (Download)][IAT c2s/s2c min/avg/max/stddev: 0/0 162/2 5370/40 907/7][Pkt Len c2s/s2c min/avg/max/stddev: 66/66 106/1306 774/1514 151/466][TCP Fingerprint: 2_64_65535_2e3cee914fc1/Unknown][TLSv1.2][JA3C: d8c87b9bfde38897979e41242626c2f3][JA4: t12d1409h2_c866b44c5a26_e08eabe7240f][ServerNames: *.viber.com,viber.com][JA3S: 76cc3e2d3028143b23ec18e27dbd7ca9][Issuer: C=US, O=thawte, Inc., CN=thawte SSL CA - G2][Subject: C=LU, ST=Luxembourg, L=Luxembourg, O=Viber Media Sarl, OU=IT, CN=*.viber.com][Certificate SHA-1: E1:11:26:E6:14:A5:E6:F7:F1:CB:68:D1:A6:95:A1:5E:11:48:72:2A][Firefox][Validity: 2016-06-26 00:00:00 - 2018-06-26 23:59:59][Cipher: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256][Plen Bins: 0,0,0,4,0,2,0,2,0,0,2,0,0,0,0,0,0,0,2,0,0,0,4,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,81,0,0]
