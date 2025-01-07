@@ -658,10 +658,6 @@ void switch_extra_dissection_to_tls(struct ndpi_detection_module_struct *ndpi_st
 				    struct ndpi_flow_struct *flow);
 void switch_extra_dissection_to_tls_obfuscated_heur(struct ndpi_detection_module_struct* ndpi_struct,
                                                     struct ndpi_flow_struct* flow);
-/* HTTP */
-void http_process_user_agent(struct ndpi_detection_module_struct *ndpi_struct,
-                             struct ndpi_flow_struct *flow,
-                             const u_int8_t *ua_ptr, u_int16_t ua_ptr_len);
 
 /* OOKLA */
 int ookla_search_into_cache(struct ndpi_detection_module_struct* ndpi_struct,

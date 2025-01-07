@@ -775,9 +775,9 @@ static void ndpi_check_user_agent(struct ndpi_detection_module_struct *ndpi_stru
 
 /* ************************************************************* */
 
-void http_process_user_agent(struct ndpi_detection_module_struct *ndpi_struct,
-			     struct ndpi_flow_struct *flow,
-			     const u_int8_t *ua_ptr, u_int16_t ua_ptr_len) {
+static void http_process_user_agent(struct ndpi_detection_module_struct *ndpi_struct,
+                                    struct ndpi_flow_struct *flow,
+                                    const u_int8_t *ua_ptr, u_int16_t ua_ptr_len) {
   /**
       Format examples:
       Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) ....
