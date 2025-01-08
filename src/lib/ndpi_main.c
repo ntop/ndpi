@@ -4439,7 +4439,7 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
     case NDPI_PIM_PROTOCOL_TYPE:
       return(NDPI_PROTOCOL_IP_PIM);
     case NDPI_ICMP_PROTOCOL_TYPE:
-      if(flow) {
+      if(flow && (packet->payload_packet_len > 0)) {
         flow->entropy = 0.0f;
 	/* Run some basic consistency tests */
 
@@ -4491,7 +4491,7 @@ static u_int16_t guess_protocol_id(struct ndpi_detection_module_struct *ndpi_str
     case NDPI_IPIP_PROTOCOL_TYPE:
       return(NDPI_PROTOCOL_IP_IP_IN_IP);
     case NDPI_ICMPV6_PROTOCOL_TYPE:
-      if(flow) {
+      if(flow && (packet->payload_packet_len > 0 /* is 0 when guessing */)) {
 	/* Run some basic consistency tests */
 
 	if(packet->payload_packet_len < sizeof(struct ndpi_icmp6hdr)) {
