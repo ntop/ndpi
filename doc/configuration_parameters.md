@@ -1,7 +1,7 @@
 
 # Configuration knobs
 
-TODO
+List of the supported configuration options:
 
 | Protocol     | Parameter                                 | Default value | Min value | Max value | Description | Notes  |
 | ------       | ------                                    | ------        | ------    | ------    | ------      | ------ |
