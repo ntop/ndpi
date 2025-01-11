@@ -331,6 +331,10 @@ static ndpi_network host_protocol_list[] = {
   { 0xA29FC000 /* 162.159.192.0/24 */, 24, NDPI_PROTOCOL_CLOUDFLARE_WARP },
   { 0xA29FC500 /* 162.159.197.0/24 */, 24, NDPI_PROTOCOL_CLOUDFLARE_WARP },
 
+  /* https://support.unity.com/hc/en-us/articles/4407491745940-Vivox-What-IPs-and-ports-are-required-for-Vivox-to-work */
+  { 0x55EC6000 /* 85.236.96.0/21 */, 21, NDPI_PROTOCOL_VIVOX },
+  { 0xBC2A5F00 /* 188.42.95.0/24 */, 24, NDPI_PROTOCOL_VIVOX },
+  { 0xBC2A9300 /* 188.42.147.0/24 */, 24, NDPI_PROTOCOL_VIVOX },
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_content_match_host_protocol_list.c.inc"
@@ -1744,6 +1748,8 @@ static ndpi_protocol_match host_match[] =
    { "cbsaavideo.com",                   "ParamountPlus", NDPI_PROTOCOL_PARAMOUNTPLUS, NDPI_PROTOCOL_CATEGORY_STREAMING, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "pplus.paramount.tech",             "ParamountPlus", NDPI_PROTOCOL_PARAMOUNTPLUS, NDPI_PROTOCOL_CATEGORY_STREAMING, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
    { "cbsi.live.ott.irdeto.com",         "ParamountPlus", NDPI_PROTOCOL_PARAMOUNTPLUS, NDPI_PROTOCOL_CATEGORY_STREAMING, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
+
+   { "vivox.com",                        "Vivox", NDPI_PROTOCOL_VIVOX, NDPI_PROTOCOL_CATEGORY_GAME, NDPI_PROTOCOL_FUN, NDPI_PROTOCOL_DEFAULT_LEVEL },
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../../nDPI-custom/custom_ndpi_content_match_host_match.c.inc"
