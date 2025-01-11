@@ -73,7 +73,6 @@ jobs:
     name: Performance (ubuntu-latest)
     runs-on: ubuntu-latest
     env:
-      GO111MODULE: on
       CFLAGS: -Werror
     steps:
       - uses: actions/checkout@v4
@@ -81,11 +80,10 @@ jobs:
           fetch-depth: 0
       - name: Install Ubuntu Prerequisites
         run: |
-          sudo add-apt-repository ppa:longsleep/golang-backports
           sudo apt-get update
           sudo apt-get install libunwind-dev
           sudo apt-get install autoconf automake libtool pkg-config gettext flex bison libpcap-dev parallel
-          sudo apt-get install golang-1.16-go libgoogle-perftools-dev graphviz
+          sudo apt-get install libgoogle-perftools-dev graphviz
           go install github.com/google/pprof@latest
           sudo ln -s ${HOME}/go/bin/pprof /usr/bin/pprof
           pprof -h
@@ -122,7 +120,7 @@ jobs:
       - name: Install Ubuntu Prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install autoconf automake libtool pkg-config gettext flex bison libjson-c libpcap-dev rrdtool librrd-dev parallel
+          sudo apt-get install autoconf automake libtool pkg-config gettext flex bison libjson-c-dev libpcap-dev rrdtool librrd-dev parallel
       - name: Configure nDPI
         run: |
           ./autogen.sh --enable-option-checking=fatal --with-thread-sanitizer
