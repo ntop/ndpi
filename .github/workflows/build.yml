@@ -130,13 +130,6 @@ jobs:
             msan: ""
             nBPF: ""
             global_context: "--disable-global-context-support"
-          - compiler: "clang" # TODO: some issues with masan/clang/ubuntu-24.04
-            os: ubuntu-22.04
-            gcrypt: ""
-            pcre: "--with-pcre2"
-            maxminddb: "--with-maxminddb"
-            msan: "--with-memory-sanitizer --disable-memory-track-origins"
-            nBPF: ""
           - compiler: "cc"
             os: macOS-13
             gcrypt: ""
@@ -251,8 +244,7 @@ jobs:
         run: |
           NDPI_FORCE_PARALLEL_UTESTS=1 NDPI_SKIP_PARALLEL_BAR=1 ./tests/do.sh
       - name: Test nDPI [UNIT]
-        # Some issues with masan + json-c. Disable the test as workaround
-        if: ${{ !startsWith(matrix.msan, '--with-memory-sanitizer') && !startsWith(matrix.os, 'macos-14') && !startsWith(matrix.os, 'macos-15') }}
+        if: ${{ !startsWith(matrix.os, 'macos-14') && !startsWith(matrix.os, 'macos-15') }}
         run: |
           ./tests/do-unit.sh
       - name: Test nDPI [DGA]

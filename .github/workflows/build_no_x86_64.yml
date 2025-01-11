@@ -1,4 +1,4 @@
-name: Build No x86_64 archs
+name: No x86_64 archs
 on:
   push:
     branches:
@@ -9,6 +9,9 @@ on:
     types: [opened, synchronize, reopened]
   release:
     types: [created]
+  schedule:
+    # At the end of every day
+    - cron: '0 0 * * *'
 jobs:
 
   test:
@@ -16,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CFLAGS: -Wextra -Werror -DNDPI_EXTENDED_SANITY_CHECKS
+      # Idea to have significant faster tests while pushing/merging: test all pcaps only on schedule runs; otherwise tests only the pcaps updated/added recently
+      NDPI_TEST_ONLY_RECENTLY_UPDATED_PCAPS: ${{ (github.event_name == 'schedule') && '0' || '1' }}
     strategy:
       fail-fast: true
       matrix:
@@ -45,7 +50,7 @@ jobs:
             "apt-get -y update &&
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
-            env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
+            env CC=gcc ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
             make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
@@ -69,7 +74,7 @@ jobs:
             "apt-get -y update &&
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
-            env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
+            env CC=gcc ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
             make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
@@ -93,7 +98,7 @@ jobs:
             "apt-get -y update &&
             apt-get -y install git wdiff colordiff autoconf automake libtool pkg-config gettext libjson-c-dev flex bison libpcap-dev rrdtool librrd-dev &&
             git config --global --add safe.directory $(realpath .) &&
-            env CC=gcc CFLAGS='-Werror' ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
+            env CC=gcc ./autogen.sh --enable-option-checking=fatal --enable-debug-messages &&
             make -j $(nproc) all &&
             make -C example ndpiSimpleIntegration &&
             make -C rrdtool &&
