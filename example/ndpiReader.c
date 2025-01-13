@@ -5249,7 +5249,7 @@ void analyzeUnitTest() {
   u_int32_t i;
 
   for(i=0; i<256; i++) {
-    ndpi_data_add_value(s, rand()*i);
+    ndpi_data_add_value(s, rand() * (u_int64_t)i);
     // ndpi_data_add_value(s, i+1);
   }
 
