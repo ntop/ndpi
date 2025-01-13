@@ -1848,7 +1848,7 @@ static int ndpi_url_decode(const char *s, char *out) {
     if(c == '+') c = ' ';
     else if(c == '%' && (!ishex(*s++)||
 			 !ishex(*s++)||
-			 !sscanf(s - 2, "%2x", (unsigned int*)&c)))
+			 (sscanf(s - 2, "%2x", (unsigned int*)&c) != 1)))
       return(-1);
 
     if(out) *o = c;
