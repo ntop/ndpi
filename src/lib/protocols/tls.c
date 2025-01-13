@@ -3247,20 +3247,20 @@ compute_ja3c:
 #ifdef DEBUG_JA
 	        printf("[JA3] Client: %s \n", flow->protos.tls_quic.ja3_client);
 #endif
-
-	        if(ndpi_struct->malicious_ja3_hashmap != NULL) {
-	          u_int16_t rc1 = ndpi_hash_find_entry(ndpi_struct->malicious_ja3_hashmap,
-	                                               flow->protos.tls_quic.ja3_client,
-	                                               NDPI_ARRAY_LENGTH(flow->protos.tls_quic.ja3_client) - 1,
-	                                               NULL);
-
-	        if(rc1 == 0)
-	          ndpi_set_risk(ndpi_struct, flow, NDPI_MALICIOUS_FINGERPRINT, flow->protos.tls_quic.ja3_client);
-	        }
 	      }
 
 	      if(ndpi_struct->cfg.tls_ja4c_fingerprint_enabled) {
 	        ndpi_compute_ja4(ndpi_struct, flow, quic_version, &ja);
+
+                if(ndpi_struct->malicious_ja4_hashmap != NULL) {
+                  u_int16_t rc1 = ndpi_hash_find_entry(ndpi_struct->malicious_ja4_hashmap,
+                                                       flow->protos.tls_quic.ja4_client,
+                                                       NDPI_ARRAY_LENGTH(flow->protos.tls_quic.ja4_client) - 1,
+                                                       NULL);
+
+                  if(rc1 == 0)
+                    ndpi_set_risk(ndpi_struct, flow, NDPI_MALICIOUS_FINGERPRINT, flow->protos.tls_quic.ja4_client);
+                }
 	      }
 	      /* End JA3/JA4 */
 	    }

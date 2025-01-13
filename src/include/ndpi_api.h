@@ -850,14 +850,14 @@ extern "C" {
   int ndpi_load_risk_domain_file(struct ndpi_detection_module_struct *ndpi_str, const char* path);
 
   /**
-   * Read a file and load the list of malicious JA3 signatures
+   * Read a file and load the list of malicious JA4 signatures
    *
    * @par     ndpi_mod = the detection module
    * @par     path     = the path of the file
    * @return  0 if the file is loaded correctly;
    *          -1 else
    */
-  int ndpi_load_malicious_ja3_file(struct ndpi_detection_module_struct *ndpi_str, const char *path);
+  int ndpi_load_malicious_ja4_file(struct ndpi_detection_module_struct *ndpi_str, const char *path);
 
   /**
    * Read a file and load the list of malicious SSL certificate SHA1 fingerprints.

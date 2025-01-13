@@ -352,7 +352,7 @@ struct ndpi_detection_module_struct {
    * update automa_type above
    */
 
-  ndpi_str_hash *malicious_ja3_hashmap, *malicious_sha1_hashmap;
+  ndpi_str_hash *malicious_ja4_hashmap, *malicious_sha1_hashmap;
 
   ndpi_list *trusted_issuer_dn;
 
@@ -633,7 +633,7 @@ ndpi_risk_enum ndpi_network_risk_ptree_match(struct ndpi_detection_module_struct
 int load_protocols_file_fd(struct ndpi_detection_module_struct *ndpi_mod, FILE *fd);
 int load_categories_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd, void *user_data);
 int load_malicious_sha1_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd);
-int load_malicious_ja3_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd);
+int load_malicious_ja4_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd);
 int load_risk_domain_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd);
 int load_config_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd);
 int load_category_file_fd(struct ndpi_detection_module_struct *ndpi_str,
