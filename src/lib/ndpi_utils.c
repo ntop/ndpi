@@ -1218,7 +1218,6 @@ static void ndpi_tls2json(ndpi_serializer *serializer, struct ndpi_flow_struct *
         ndpi_serialize_string_string(serializer, "notafter", notAfter);
       }
 
-      ndpi_serialize_string_string(serializer, "ja3", flow->protos.tls_quic.ja3_client);
       ndpi_serialize_string_string(serializer, "ja3s", flow->protos.tls_quic.ja3_server);
       ndpi_serialize_string_string(serializer, "ja4", flow->protos.tls_quic.ja4_client);
       ndpi_serialize_string_uint32(serializer, "unsafe_cipher", flow->protos.tls_quic.server_unsafe_cipher);
