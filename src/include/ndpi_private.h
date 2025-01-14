@@ -700,7 +700,7 @@ int search_into_bittorrent_cache(struct ndpi_detection_module_struct *ndpi_struc
 int is_stun(struct ndpi_detection_module_struct *ndpi_struct,
             struct ndpi_flow_struct *flow,
             u_int16_t *app_proto);
-void switch_extra_dissection_to_stun(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow);
+void switch_extra_dissection_to_stun(struct ndpi_detection_module_struct *ndpi_struct, struct ndpi_flow_struct *flow, int std_callback);
 
 /* TPKT */
 int tpkt_verify_hdr(const struct ndpi_packet_struct * const packet);
