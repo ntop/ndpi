@@ -243,7 +243,6 @@ struct ndpi_detection_module_config_struct {
   int tls_heuristics;
   int tls_heuristics_max_packets;
   int tls_sha1_fingerprint_enabled;
-  int tls_ja3c_fingerprint_enabled;
   int tls_ja3s_fingerprint_enabled;
   int tls_ja4c_fingerprint_enabled;
   int tls_ja4r_fingerprint_enabled;

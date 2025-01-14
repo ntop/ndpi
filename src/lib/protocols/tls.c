@@ -3184,71 +3184,9 @@ int processClientServerHello(struct ndpi_detection_module_struct *ndpi_struct,
 	    } /* while */
 
 	    if(!invalid_ja) {
-	      /* Compute JA3 client */
+	      /* Compute JA4 client */
 
-compute_ja3c:
-              if(ndpi_struct->cfg.tls_ja3c_fingerprint_enabled) {
-	        int rc;
-                u_int16_t ja_str_len;
-                char ja_str[JA_STR_LEN];
-                ndpi_MD5_CTX ctx;
-                u_char md5_hash[16];
-
-	        ja_str_len = ndpi_snprintf(ja_str, JA_STR_LEN, "%u,", ja.client.tls_handshake_version);
-
-	        for(i=0; i<ja.client.num_ciphers; i++) {
-		  rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, "%s%u",
-				     (i > 0) ? "-" : "", ja.client.cipher[i]);
-		  if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc; else break;
-	        }
-
-	        rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, ",");
-	        if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc;
-
-	        /* ********** */
-
-	        for(i=0; i<ja.client.num_tls_extensions; i++) {
-		  rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, "%s%u",
-				     (i > 0) ? "-" : "", ja.client.tls_extension[i]);
-		  if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc; else break;
-	        }
-
-	        rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, ",");
-	        if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc;
-
-	        /* ********** */
-
-	        for(i=0; i<ja.client.num_elliptic_curve; i++) {
-		  rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, "%s%u",
-				     (i > 0) ? "-" : "", ja.client.elliptic_curve[i]);
-		  if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc; else break;
-	        }
-
-	        rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, ",");
-	        if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc;
-
-	        for(i=0; i<ja.client.num_elliptic_curve_point_format; i++) {
-		  rc = ndpi_snprintf(&ja_str[ja_str_len], JA_STR_LEN-ja_str_len, "%s%u",
-				     (i > 0) ? "-" : "", ja.client.elliptic_curve_point_format[i]);
-		  if((rc > 0) && (ja_str_len + rc < JA_STR_LEN)) ja_str_len += rc; else break;
-	        }
-
-	        ndpi_MD5Init(&ctx);
-	        ndpi_MD5Update(&ctx, (const unsigned char *)ja_str, strlen(ja_str));
-	        ndpi_MD5Final(md5_hash, &ctx);
-
-	        for(i=0, j=0; i<16; i++) {
-		  rc = ndpi_snprintf(&flow->protos.tls_quic.ja3_client[j],
-				     sizeof(flow->protos.tls_quic.ja3_client)-j, "%02x",
-				     md5_hash[i]);
-		  if(rc > 0) j += rc; else break;
-	        }
-
-#ifdef DEBUG_JA
-	        printf("[JA3] Client: %s \n", flow->protos.tls_quic.ja3_client);
-#endif
-	      }
-
+compute_ja4c:
 	      if(ndpi_struct->cfg.tls_ja4c_fingerprint_enabled) {
 	        ndpi_compute_ja4(ndpi_struct, flow, quic_version, &ja);
 
@@ -3262,7 +3200,7 @@ compute_ja3c:
                     ndpi_set_risk(ndpi_struct, flow, NDPI_MALICIOUS_FINGERPRINT, flow->protos.tls_quic.ja4_client);
                 }
 	      }
-	      /* End JA3/JA4 */
+	      /* End JA4 */
 	    }
 
 	    /* Before returning to the caller we need to make a final check */
@@ -3307,7 +3245,7 @@ compute_ja3c:
 	  }
 	} else if(offset == total_len) {
 	  /* TLS does not have extensions etc */
-	  goto compute_ja3c;
+	  goto compute_ja4c;
 	}
       } else {
 #ifdef DEBUG_TLS
