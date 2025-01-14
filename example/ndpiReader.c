@@ -79,7 +79,7 @@ static char *results_path           = NULL;
 static char * bpfFilter             = NULL; /**< bpf filter  */
 static char *_protoFilePath         = NULL; /**< Protocol file path */
 static char *_customCategoryFilePath= NULL; /**< Custom categories file path  */
-static char *_maliciousJA3Path      = NULL; /**< Malicious JA3 signatures */
+static char *_maliciousJA4Path      = NULL; /**< Malicious JA4 signatures */
 static char *_maliciousSHA1Path     = NULL; /**< Malicious SSL certificate SHA1 fingerprints */
 static char *_riskyDomainFilePath   = NULL; /**< Risky domain files */
 static char *_domain_suffixes       = NULL; /**< Domain suffixes file */
@@ -684,7 +684,7 @@ static void help(u_int long_help) {
 	 "  -E <path>                 | Write flow fingerprints on the specified file\n"
          "  -r <path>                 | Load risky domain file\n"
          "  -R                        | Print detected realtime protocols\n"
-         "  -j <path>                 | Load malicious JA3 fingeprints\n"
+         "  -j <path>                 | Load malicious JA4 fingeprints\n"
          "  -S <path>                 | Load malicious SSL certificate SHA1 fingerprints\n"
 	 "  -G <dir>                  | Bind domain names to categories loading files from <dir>\n"
          "  -w <path>                 | Write test output on the specified file. This is useful for\n"
@@ -1157,7 +1157,7 @@ static void parse_parameters(int argc, char **argv)
       break;
 
     case 'j':
-      _maliciousJA3Path = optarg;
+      _maliciousJA4Path = optarg;
       break;
 
     case 'S':
@@ -2974,8 +2974,8 @@ static void setupDetection(u_int16_t thread_id, pcap_t * pcap_handle,
   if(_riskyDomainFilePath)
     ndpi_load_risk_domain_file(ndpi_thread_info[thread_id].workflow->ndpi_struct, _riskyDomainFilePath);
 
-  if(_maliciousJA3Path)
-    ndpi_load_malicious_ja3_file(ndpi_thread_info[thread_id].workflow->ndpi_struct, _maliciousJA3Path);
+  if(_maliciousJA4Path)
+    ndpi_load_malicious_ja4_file(ndpi_thread_info[thread_id].workflow->ndpi_struct, _maliciousJA4Path);
 
   if(_maliciousSHA1Path)
     ndpi_load_malicious_sha1_file(ndpi_thread_info[thread_id].workflow->ndpi_struct, _maliciousSHA1Path);

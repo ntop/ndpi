@@ -78,7 +78,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
     ndpi_load_protocols_file(workflow->ndpi_struct, "protos.txt");
     ndpi_load_categories_file(workflow->ndpi_struct, "categories.txt", NULL);
     ndpi_load_risk_domain_file(workflow->ndpi_struct, "risky_domains.txt");
-    ndpi_load_malicious_ja3_file(workflow->ndpi_struct, "ja3_fingerprints.csv");
+    ndpi_load_malicious_ja4_file(workflow->ndpi_struct, "ja4_fingerprints.csv");
     ndpi_load_malicious_sha1_file(workflow->ndpi_struct, "sha1_fingerprints.csv");
 
     // enable all protocols

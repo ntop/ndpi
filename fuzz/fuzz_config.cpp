@@ -87,9 +87,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   if(fuzzed_data.ConsumeBool())
     ndpi_load_risk_domain_file(ndpi_info_mod, fuzzed_data.ConsumeBool() ? NULL : "invalid_filename"); /* Error */
   if(fuzzed_data.ConsumeBool())
-    ndpi_load_malicious_ja3_file(ndpi_info_mod, "ja3_fingerprints.csv");
+    ndpi_load_malicious_ja4_file(ndpi_info_mod, "ja4_fingerprints.csv");
   if(fuzzed_data.ConsumeBool())
-    ndpi_load_malicious_ja3_file(ndpi_info_mod, fuzzed_data.ConsumeBool() ? NULL : "invalid_filename"); /* Error */
+    ndpi_load_malicious_ja4_file(ndpi_info_mod, fuzzed_data.ConsumeBool() ? NULL : "invalid_filename"); /* Error */
   if(fuzzed_data.ConsumeBool())
     ndpi_load_malicious_sha1_file(ndpi_info_mod, "sha1_fingerprints.csv");
   if(fuzzed_data.ConsumeBool())

@@ -3463,7 +3463,7 @@ struct ndpi_detection_module_struct *ndpi_init_detection_module(struct ndpi_glob
     return(NULL);
   }
 
-  ndpi_str->malicious_ja3_hashmap = NULL; /* Initialized on demand */
+  ndpi_str->malicious_ja4_hashmap = NULL; /* Initialized on demand */
   ndpi_str->malicious_sha1_hashmap = NULL; /* Initialized on demand */
   ndpi_str->risky_domain_automa.ac_automa = NULL; /* Initialized on demand */
   ndpi_str->trusted_issuer_dn = NULL;
@@ -4314,8 +4314,8 @@ void ndpi_exit_detection_module(struct ndpi_detection_module_struct *ndpi_str) {
     if(ndpi_str->tls_cert_subject_automa.ac_automa != NULL)
       ac_automata_release((AC_AUTOMATA_t *) ndpi_str->tls_cert_subject_automa.ac_automa, 0);
 
-    if(ndpi_str->malicious_ja3_hashmap != NULL)
-      ndpi_hash_free(&ndpi_str->malicious_ja3_hashmap);
+    if(ndpi_str->malicious_ja4_hashmap != NULL)
+      ndpi_hash_free(&ndpi_str->malicious_ja4_hashmap);
 
     if(ndpi_str->malicious_sha1_hashmap != NULL)
       ndpi_hash_free(&ndpi_str->malicious_sha1_hashmap);
@@ -5267,10 +5267,10 @@ int load_risk_domain_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE
 /*
  * Format:
  *
- * <ja3 hash>[,<other info>]
+ * <ja4 hash>[,<other info>]
  *
  */
-int ndpi_load_malicious_ja3_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
+int ndpi_load_malicious_ja4_file(struct ndpi_detection_module_struct *ndpi_str, const char *path) {
   int rc;
   FILE *fd;
 
@@ -5283,7 +5283,7 @@ int ndpi_load_malicious_ja3_file(struct ndpi_detection_module_struct *ndpi_str, 
     return -1;
   }
 
-  rc = load_malicious_ja3_file_fd(ndpi_str, fd);
+  rc = load_malicious_ja4_file_fd(ndpi_str, fd);
 
   fclose(fd);
 
@@ -5292,13 +5292,13 @@ int ndpi_load_malicious_ja3_file(struct ndpi_detection_module_struct *ndpi_str, 
 
 /* ******************************************************************** */
 
-int load_malicious_ja3_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd) {
+int load_malicious_ja4_file_fd(struct ndpi_detection_module_struct *ndpi_str, FILE *fd) {
   char buffer[128], *line;
   int len, num = 0;
 
   if(!ndpi_str || !fd)
     return(-1);
-  if(ndpi_str->malicious_ja3_hashmap == NULL && ndpi_hash_init(&ndpi_str->malicious_ja3_hashmap) != 0)
+  if(ndpi_str->malicious_ja4_hashmap == NULL && ndpi_hash_init(&ndpi_str->malicious_ja4_hashmap) != 0)
     return(-1);
 
   while(1) {
@@ -5321,12 +5321,12 @@ int load_malicious_ja3_file_fd(struct ndpi_detection_module_struct *ndpi_str, FI
 
     len = strlen(line);
 
-    if(len != 32 /* size of MD5 hash */) {
-      NDPI_LOG_ERR(ndpi_str, "Not a JA3 md5 hash: [%s]\n", line);
+    if(len != 36 /* size of JA4C */) {
+      NDPI_LOG_ERR(ndpi_str, "Not a JA4C: [%s]\n", line);
       continue;
     }
 
-    if(ndpi_hash_add_entry(&ndpi_str->malicious_ja3_hashmap, line, len, 0) == 0)
+    if(ndpi_hash_add_entry(&ndpi_str->malicious_ja4_hashmap, line, len, 0) == 0)
       num++;
   }
 
