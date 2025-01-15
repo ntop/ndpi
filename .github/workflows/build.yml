@@ -76,9 +76,8 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        # macOS-latest == macos-14 on **ARM64**. Also macos-15 is on arm64
-        # There are some issues with external dependencies on macOS-14/15. Disable it for the time being
-        os: ["ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04", "macOS-13"]
+        # macos-14 and 15 are on **ARM64**
+        os: ["ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04", "macOS-13", "macOS-14", "macOS-15"]
         gcrypt: ["--with-local-libgcrypt", ""]
         compiler: ["cc"]
         pcre: [""]
@@ -131,25 +130,11 @@ jobs:
             nBPF: ""
             global_context: "--disable-global-context-support"
           - compiler: "cc"
-            os: macOS-13
+            os: macOS-latest
             gcrypt: ""
             pcre: "--with-pcre2"
             maxminddb: "--with-maxminddb"
-            msan: "" # Disable sanitizer on macos
-            nBPF: ""
-          - compiler: "cc"
-            os: macos-14
-            gcrypt: ""
-            pcre: ""
-            maxminddb: ""
-            msan: "" # Disable sanitizer on macos
-            nBPF: ""
-          - compiler: "cc"
-            os: macos-15
-            gcrypt: ""
-            pcre: ""
-            maxminddb: ""
-            msan: "" # Disable sanitizer on macos
+            msan: ""
             nBPF: ""
     steps:
       - uses: actions/checkout@v4
@@ -215,18 +200,10 @@ jobs:
         run: |
           ./autogen.sh --enable-option-checking=fatal --enable-debug-messages ${{ matrix.gcrypt }} ${{ matrix.msan }} ${{ matrix.pcre }} ${{ matrix.maxminddb }} --enable-tls-sigs ${{ matrix.global_context}}
       - name: Build nDPI
-        if: ${{ !startsWith(matrix.os, 'macos-14') && !startsWith(matrix.os, 'macos-15') }}
         run: |
           make -j all
           make -C example ndpiSimpleIntegration
           make -C rrdtool
-      - name: Build nDPI (MacOS M1)
-        if: startsWith(matrix.os, 'macos-14') || startsWith(matrix.os, 'macos-15')
-        run: |
-          make -j all
-          make -C example ndpiSimpleIntegration
-          # There are somes issues with librrd
-          # make -C rrdtool
       - name: Print nDPI long help
         run: |
           cd ./example && ./ndpiReader -H
@@ -244,7 +221,6 @@ jobs:
         run: |
           NDPI_FORCE_PARALLEL_UTESTS=1 NDPI_SKIP_PARALLEL_BAR=1 ./tests/do.sh
       - name: Test nDPI [UNIT]
-        if: ${{ !startsWith(matrix.os, 'macos-14') && !startsWith(matrix.os, 'macos-15') }}
         run: |
           ./tests/do-unit.sh
       - name: Test nDPI [DGA]
