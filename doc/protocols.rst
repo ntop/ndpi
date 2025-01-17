@@ -1069,7 +1069,7 @@ References: `Main site <https://www.paramountplus.com/>`_
 .. _Proto 440:
 
 `NDPI_PROTOCOL_YANDEX_ALICE`
-=============================
+============================
 Yandex Alice is a voice assistant developed by Yandex, providing answers, performing tasks, and supporting smart home integration, similar to Alexa or Google Assistant.
 
 References: `Main site <https://yandex.ru/dev/dialogs/alice/doc/ru/protocol/>`_
@@ -1078,7 +1078,16 @@ References: `Main site <https://yandex.ru/dev/dialogs/alice/doc/ru/protocol/>`_
 .. _Proto 441:
 
 `NDPI_PROTOCOL_VIVOX`
-=============================
+=====================
 Vivox is a voice and text chat technology platform that provides real-time communication solutions for online games and applications.
 
 References: `Main site <https://unity.com/products/vivox-voice-chat>`_
+
+
+.. _Proto 442:
+
+`NDPI_PROTOCOL_DIGITALOCEAN`
+============================
+DigitalOcean is a cloud service provider.
+
+References: `Main site <https://www.digitalocean.com/>`_

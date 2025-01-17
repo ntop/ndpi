@@ -465,6 +465,7 @@ int is_flow_addr_informative(const struct ndpi_flow_struct *flow)
   case NDPI_PROTOCOL_CACHEFLY:
   case NDPI_PROTOCOL_CLOUDFLARE:
   case NDPI_PROTOCOL_GOOGLE_CLOUD:
+  case NDPI_PROTOCOL_DIGITALOCEAN:
     return 0;
   /* This is basically the list of VPNs (with **entry** addresses) supported by nDPI */
   case NDPI_PROTOCOL_NORDVPN:
