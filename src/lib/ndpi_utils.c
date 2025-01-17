@@ -262,9 +262,8 @@ u_int8_t ndpi_net_match(u_int32_t ip_to_check,
   return(((ip_to_check & mask) == (net & mask)) ? 1 : 0);
 }
 
-u_int8_t ips_match(u_int32_t src, u_int32_t dst,
-		   u_int32_t net, u_int32_t num_bits)
-{
+u_int8_t ndpi_ips_match(u_int32_t src, u_int32_t dst,
+			u_int32_t net, u_int32_t num_bits) {
   return(ndpi_net_match(src, net, num_bits) || ndpi_net_match(dst, net, num_bits));
 }
 

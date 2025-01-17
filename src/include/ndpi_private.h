@@ -609,7 +609,7 @@ u_int8_t is_a_common_alpn(struct ndpi_detection_module_struct *ndpi_str,
 
 int64_t asn1_ber_decode_length(const unsigned char *payload, int payload_len, u_int16_t *value_len);
 
-u_int8_t ips_match(u_int32_t src, u_int32_t dst,
+u_int8_t ndpi_ips_match(u_int32_t src, u_int32_t dst,
 		   u_int32_t net, u_int32_t num_bits);
 
 u_int8_t ends_with(struct ndpi_detection_module_struct *ndpi_struct,
