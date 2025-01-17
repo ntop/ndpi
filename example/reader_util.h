@@ -359,6 +359,9 @@ typedef struct ndpi_stats {
   u_int64_t protocol_counter[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
   u_int64_t protocol_counter_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
   u_int32_t protocol_flows[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
+  u_int64_t fpc_protocol_counter[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
+  u_int64_t fpc_protocol_counter_bytes[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
+  u_int32_t fpc_protocol_flows[NDPI_MAX_SUPPORTED_PROTOCOLS + NDPI_MAX_NUM_CUSTOM_PROTOCOLS + 1];
   u_int32_t ndpi_flow_count;
   u_int32_t flow_count[3];
   u_int64_t tcp_count, udp_count;
@@ -367,6 +370,7 @@ typedef struct ndpi_stats {
   u_int16_t max_packet_len;
   u_int64_t dpi_packet_count[3];
   u_int64_t flow_confidence[NDPI_CONFIDENCE_MAX];
+  u_int64_t fpc_flow_confidence[NDPI_FPC_CONFIDENCE_MAX];
   u_int64_t num_dissector_calls;
 
   struct ndpi_lru_cache_stats lru_stats[NDPI_LRUCACHE_MAX];

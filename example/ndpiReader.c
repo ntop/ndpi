@@ -99,6 +99,7 @@ static char *bind_mask = NULL;
 #define MAX_FARGS 64
 static char* fargv[MAX_FARGS];
 static int fargc = 0;
+static int dump_fpc_stats = 0;
 
 #ifdef CUSTOM_NDPI_PROTOCOLS
 #include "../../nDPI-custom/ndpiReader_defs.c"
@@ -716,6 +717,7 @@ static void help(u_int long_help) {
          "  --tls_heuristics          | Enable TLS heuristics.\n"
          "                            | It is a shortcut to --cfg=tls,dpi.heuristics,0x07\n"
          "  --cfg=proto,param,value   | Configure the specific attribute of this protocol\n"
+         "  --dump-fpc-stats          | Print FPC statistics\n"
          ,
          human_readeable_string_len,
          min_pattern_len, max_pattern_len, max_num_packets_per_flow, max_packet_payload_dissection,
@@ -777,6 +779,7 @@ static void help(u_int long_help) {
 #define OPTLONG_VALUE_OPENVPN_HEURISTICS	3001
 #define OPTLONG_VALUE_TLS_HEURISTICS		3002
 #define OPTLONG_VALUE_CONF                      3003
+#define OPTLONG_VALUE_FPC_STATS                 3004
 
 static struct option longopts[] = {
   /* mandatory extcap options */
@@ -825,6 +828,7 @@ static struct option longopts[] = {
   { "openvpn_heuristics", no_argument, NULL, OPTLONG_VALUE_OPENVPN_HEURISTICS},
   { "tls_heuristics", no_argument, NULL, OPTLONG_VALUE_TLS_HEURISTICS},
   { "conf", required_argument, NULL, OPTLONG_VALUE_CONF},
+  { "dump-fpc-stats", no_argument, NULL, OPTLONG_VALUE_FPC_STATS},
 
   {0, 0, 0, 0}
 };
@@ -1398,6 +1402,10 @@ static void parse_parameters(int argc, char **argv)
         printf("Invalid cfg [num:%d/%d]\n", num_cfgs, MAX_NUM_CFGS);
         exit(1);
       }
+      break;
+
+    case OPTLONG_VALUE_FPC_STATS:
+      dump_fpc_stats = 1;
       break;
 
     case OPTLONG_VALUE_CONF:
@@ -2401,7 +2409,7 @@ static void node_print_known_proto_walker(const void *node,
  */
 static void node_proto_guess_walker(const void *node, ndpi_VISIT which, int depth, void *user_data) {
   struct ndpi_flow_info *flow = *(struct ndpi_flow_info **) node;
-  u_int16_t thread_id = *((u_int16_t *) user_data), proto;
+  u_int16_t thread_id = *((u_int16_t *) user_data), proto, fpc_proto;
 
   (void)depth;
 
@@ -2422,14 +2430,20 @@ static void node_proto_guess_walker(const void *node, ndpi_VISIT which, int dept
     process_ndpi_collected_info(ndpi_thread_info[thread_id].workflow, flow);
 
     proto = flow->detected_protocol.proto.app_protocol ? flow->detected_protocol.proto.app_protocol : flow->detected_protocol.proto.master_protocol;
-
     proto = ndpi_map_user_proto_id_to_ndpi_id(ndpi_thread_info[thread_id].workflow->ndpi_struct, proto);
+
+    fpc_proto = flow->fpc.proto.app_protocol ? flow->fpc.proto.app_protocol : flow->fpc.proto.master_protocol;
+    fpc_proto = ndpi_map_user_proto_id_to_ndpi_id(ndpi_thread_info[thread_id].workflow->ndpi_struct, fpc_proto);
 
     ndpi_thread_info[thread_id].workflow->stats.protocol_counter[proto]       += flow->src2dst_packets + flow->dst2src_packets;
     ndpi_thread_info[thread_id].workflow->stats.protocol_counter_bytes[proto] += flow->src2dst_bytes + flow->dst2src_bytes;
     ndpi_thread_info[thread_id].workflow->stats.protocol_flows[proto]++;
     ndpi_thread_info[thread_id].workflow->stats.flow_confidence[flow->confidence]++;
     ndpi_thread_info[thread_id].workflow->stats.num_dissector_calls += flow->num_dissector_calls;
+    ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_counter[fpc_proto]       += flow->src2dst_packets + flow->dst2src_packets;
+    ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_counter_bytes[fpc_proto] += flow->src2dst_bytes + flow->dst2src_bytes;
+    ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_flows[fpc_proto]++;
+    ndpi_thread_info[thread_id].workflow->stats.fpc_flow_confidence[flow->fpc.confidence]++;
   }
 }
 
@@ -3877,7 +3891,8 @@ static void printFlowsStats() {
 
     num_flows = 0;
     for(thread_id = 0; thread_id < num_threads; thread_id++) {
-      if(ndpi_thread_info[thread_id].workflow->stats.protocol_counter[0] > 0) {
+      if(ndpi_thread_info[thread_id].workflow->stats.protocol_counter[0] > 0 ||
+         (dump_fpc_stats && ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_counter[0] > 0)) {
         for(i=0; i<NUM_ROOTS; i++)
           ndpi_twalk(ndpi_thread_info[thread_id].workflow->ndpi_flows_root[i],
                      node_print_unknown_proto_walker, &thread_id);
@@ -3964,6 +3979,10 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
       cumulative_stats.protocol_counter[i] += ndpi_thread_info[thread_id].workflow->stats.protocol_counter[i];
       cumulative_stats.protocol_counter_bytes[i] += ndpi_thread_info[thread_id].workflow->stats.protocol_counter_bytes[i];
       cumulative_stats.protocol_flows[i] += ndpi_thread_info[thread_id].workflow->stats.protocol_flows[i];
+
+      cumulative_stats.fpc_protocol_counter[i] += ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_counter[i];
+      cumulative_stats.fpc_protocol_counter_bytes[i] += ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_counter_bytes[i];
+      cumulative_stats.fpc_protocol_flows[i] += ndpi_thread_info[thread_id].workflow->stats.fpc_protocol_flows[i];
     }
 
     cumulative_stats.ndpi_flow_count += ndpi_thread_info[thread_id].workflow->stats.ndpi_flow_count;
@@ -3986,6 +4005,9 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 
     for(i = 0; i < sizeof(cumulative_stats.flow_confidence)/sizeof(cumulative_stats.flow_confidence[0]); i++)
       cumulative_stats.flow_confidence[i] += ndpi_thread_info[thread_id].workflow->stats.flow_confidence[i];
+
+    for(i = 0; i < sizeof(cumulative_stats.fpc_flow_confidence)/sizeof(cumulative_stats.fpc_flow_confidence[0]); i++)
+      cumulative_stats.fpc_flow_confidence[i] += ndpi_thread_info[thread_id].workflow->stats.fpc_flow_confidence[i];
 
     cumulative_stats.num_dissector_calls += ndpi_thread_info[thread_id].workflow->stats.num_dissector_calls;
 
@@ -4132,6 +4154,14 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 	       (long long unsigned int)cumulative_stats.flow_confidence[i]);
     }
 
+    if(dump_fpc_stats) {
+      for(i = 0; i < sizeof(cumulative_stats.fpc_flow_confidence)/sizeof(cumulative_stats.fpc_flow_confidence[0]); i++) {
+        if(cumulative_stats.fpc_flow_confidence[i] != 0)
+          printf("\tFPC Confidence: %-10s %-13llu (flows)\n", ndpi_fpc_confidence_get_name(i),
+                 (long long unsigned int)cumulative_stats.fpc_flow_confidence[i]);
+      }
+    }
+
     if(dump_internal_stats) {
       char buf[1024];
 
@@ -4233,6 +4263,15 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
 		(long long unsigned int)cumulative_stats.flow_confidence[i]);
     }
 
+    if(dump_fpc_stats) {
+      for(i = 0; i < sizeof(cumulative_stats.fpc_flow_confidence)/sizeof(cumulative_stats.fpc_flow_confidence[0]); i++) {
+        if(cumulative_stats.fpc_flow_confidence[i] != 0)
+          fprintf(results_file, "FPC Confidence %-17s: %llu (flows)\n",
+                  ndpi_fpc_confidence_get_name(i),
+                  (long long unsigned int)cumulative_stats.fpc_flow_confidence[i]);
+      }
+    }
+
     if(dump_internal_stats) {
       char buf[1024];
 
@@ -4317,29 +4356,57 @@ static void printResults(u_int64_t processing_time_usec, u_int64_t setup_time_us
     ndpi_protocol_breed_t breed = ndpi_get_proto_breed(ndpi_thread_info[0].workflow->ndpi_struct,
                                                        ndpi_map_ndpi_id_to_user_proto_id(ndpi_thread_info[0].workflow->ndpi_struct, i));
 
-    if(cumulative_stats.protocol_counter[i] > 0) {
+    if(cumulative_stats.protocol_counter[i] > 0 ||
+       (dump_fpc_stats && cumulative_stats.fpc_protocol_counter[i] > 0)) {
       breed_stats_bytes[breed] += (long long unsigned int)cumulative_stats.protocol_counter_bytes[i];
       breed_stats_pkts[breed] += (long long unsigned int)cumulative_stats.protocol_counter[i];
       breed_stats_flows[breed] += (long long unsigned int)cumulative_stats.protocol_flows[i];
 
-      if(results_file)
-	fprintf(results_file, "%s\t%llu\t%llu\t%u\n",
+      if(results_file) {
+	fprintf(results_file, "%s\t%llu\t%llu\t%u",
 		ndpi_get_proto_name(ndpi_thread_info[0].workflow->ndpi_struct,
 				    ndpi_map_ndpi_id_to_user_proto_id(ndpi_thread_info[0].workflow->ndpi_struct, i)),
 		(long long unsigned int)cumulative_stats.protocol_counter[i],
 		(long long unsigned int)cumulative_stats.protocol_counter_bytes[i],
 		cumulative_stats.protocol_flows[i]);
+	if(dump_fpc_stats) {
+	  fprintf(results_file, "\t%llu\t%llu\t%u",
+                  (long long unsigned int)cumulative_stats.fpc_protocol_counter[i],
+                  (long long unsigned int)cumulative_stats.fpc_protocol_counter_bytes[i],
+	          cumulative_stats.fpc_protocol_flows[i]);
+	  if(cumulative_stats.protocol_counter[i] != cumulative_stats.fpc_protocol_counter[i] ||
+	     cumulative_stats.protocol_counter_bytes[i] != cumulative_stats.fpc_protocol_counter_bytes[i] ||
+	     cumulative_stats.protocol_flows[i] != cumulative_stats.fpc_protocol_flows[i])
+	    fprintf(results_file, "\t(*)");
+	}
+	fprintf(results_file, "\n");
+      }
 
       if(!quiet_mode) {
 	printf("\t%-20s packets: %-13llu bytes: %-13llu "
-	       "flows: %-13u\n",
+	       "flows: %-13u",
 	       ndpi_get_proto_name(ndpi_thread_info[0].workflow->ndpi_struct,
 				   ndpi_map_ndpi_id_to_user_proto_id(ndpi_thread_info[0].workflow->ndpi_struct, i)),
 	       (long long unsigned int)cumulative_stats.protocol_counter[i],
 	       (long long unsigned int)cumulative_stats.protocol_counter_bytes[i],
 	       cumulative_stats.protocol_flows[i]);
+	if(dump_fpc_stats) {
+	  printf(" FPC packets: %-13llu FPC bytes: %-13llu "
+	         "FPC flows: %-13u",
+	         (long long unsigned int)cumulative_stats.fpc_protocol_counter[i],
+	         (long long unsigned int)cumulative_stats.fpc_protocol_counter_bytes[i],
+	         cumulative_stats.fpc_protocol_flows[i]);
+	  if(cumulative_stats.protocol_counter[i] != cumulative_stats.fpc_protocol_counter[i] ||
+	     cumulative_stats.protocol_counter_bytes[i] != cumulative_stats.fpc_protocol_counter_bytes[i] ||
+	     cumulative_stats.protocol_flows[i] != cumulative_stats.fpc_protocol_flows[i])
+	    printf("(*)");
+	}
+	printf("\n");
       }
     }
+  }
+  if(!quiet_mode && dump_fpc_stats) {
+    printf("\n\tNOTE: protocols with different standard and FPC statistics are marked\n");
   }
 
   if(!quiet_mode) {
