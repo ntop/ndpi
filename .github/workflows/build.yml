@@ -77,7 +77,7 @@ jobs:
       fail-fast: true
       matrix:
         # macos-14 and 15 are on **ARM64**
-        os: ["ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04", "macOS-13", "macOS-14", "macOS-15", "ubuntu-22.04-arm", "ubuntu-24.04-arm"]
+        os: ["ubuntu-22.04", "ubuntu-24.04", "macOS-13", "macOS-14", "macOS-15", "ubuntu-22.04-arm", "ubuntu-24.04-arm"]
         gcrypt: ["--with-local-libgcrypt", ""]
         compiler: ["cc"]
         pcre: [""]
@@ -87,7 +87,7 @@ jobs:
         global_context: [""] # Enable by default
         include:
           - compiler: "gcc-4.9" # "Oldest" gcc easily available. To simulate RHEL7
-            os: ubuntu-20.04
+            os: ubuntu-22.04
             gcrypt: ""
             pcre: "--with-pcre2"
             maxminddb: "--with-maxminddb"
@@ -100,8 +100,8 @@ jobs:
             maxminddb: "--with-maxminddb"
             msan: "--with-sanitizer"
             nBPF: ""
-          - compiler: "clang-9" # "Oldest" clang easily available
-            os: ubuntu-20.04
+          - compiler: "clang-12" # "Oldest" clang easily available
+            os: ubuntu-22.04
             gcrypt: ""
             pcre: "--with-pcre2"
             maxminddb: "--with-maxminddb"
@@ -171,9 +171,9 @@ jobs:
           make
           cd -
       - name: Setup Ubuntu specified compiler
-        if: startsWith(matrix.os, 'ubuntu-20.04') && ! startsWith(matrix.compiler, 'cc')
+        if: startsWith(matrix.os, 'ubuntu-22.04') && ! startsWith(matrix.compiler, 'cc')
         run: |
-          # For gcc-4.9 (on ubuntu-20.04)
+          # For gcc-4.9 (on ubuntu-22.04)
           echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" | sudo tee -a /etc/apt/sources.list
           echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" | sudo tee -a /etc/apt/sources.list
           sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5
