@@ -34,6 +34,8 @@ RETVAL=$(( RETVAL + $? ))
 RETVAL=$(( RETVAL + $? ))
 ./surfshark_ip_addresses_download.sh
 RETVAL=$(( RETVAL + $? ))
+./digitalocean_ip_addresses_download.sh
+RETVAL=$(( RETVAL + $? ))
 
 ./asn_update.sh
 RETVAL=$(( RETVAL + $? ))

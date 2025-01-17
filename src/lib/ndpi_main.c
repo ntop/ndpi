@@ -78,6 +78,7 @@
 #include "inc_generated/ndpi_zoom_match.c.inc"
 #include "inc_generated/ndpi_cachefly_match.c.inc"
 #include "inc_generated/ndpi_cloudflare_match.c.inc"
+#include "inc_generated/ndpi_digitalocean_match.c.inc"
 #include "inc_generated/ndpi_ms_office365_match.c.inc"
 #include "inc_generated/ndpi_ms_onedrive_match.c.inc"
 #include "inc_generated/ndpi_ms_outlook_match.c.inc"
@@ -124,6 +125,7 @@
 #include "inc_generated/ndpi_asn_epicgames.c.inc"
 #include "inc_generated/ndpi_asn_nvidia.c.inc"
 #include "inc_generated/ndpi_asn_roblox.c.inc"
+
 
 /* Third party libraries */
 #include "third_party/include/ndpi_patricia.h"
@@ -3631,6 +3633,10 @@ int ndpi_finalize_initialization(struct ndpi_detection_module_struct *ndpi_str) 
   if(is_ip_list_enabled(ndpi_str, NDPI_PROTOCOL_CLOUDFLARE)) {
     ndpi_init_ptree_ipv4(ndpi_str->protocols->v4, ndpi_protocol_cloudflare_protocol_list);
     ndpi_init_ptree_ipv6(ndpi_str, ndpi_str->protocols->v6, ndpi_protocol_cloudflare_protocol_list_6);
+  }
+  if(is_ip_list_enabled(ndpi_str, NDPI_PROTOCOL_DIGITALOCEAN)) {
+    ndpi_init_ptree_ipv4(ndpi_str->protocols->v4, ndpi_protocol_digitalocean_protocol_list);
+    ndpi_init_ptree_ipv6(ndpi_str, ndpi_str->protocols->v6, ndpi_protocol_digitalocean_protocol_list_6);
   }
   if(is_ip_list_enabled(ndpi_str, NDPI_PROTOCOL_GOOGLE)) {
     ndpi_init_ptree_ipv4(ndpi_str->protocols->v4, ndpi_protocol_google_protocol_list);
