@@ -375,7 +375,10 @@ static int search_heur_opcode(struct ndpi_detection_module_struct* ndpi_struct,
   u_int16_t ovpn_payload_len = packet->payload_packet_len;
   int dir = packet->packet_direction;
   u_int16_t pdu_len;
-  int rc, iter, offset;
+  int rc, offset;
+#ifdef NDPI_ENABLE_DEBUG_MESSAGES
+  int iter;
+#endif
 
   /* To reduce false positives number, trigger the heuristic only for flows to
      suspicious/unknown addresses */
@@ -409,7 +412,9 @@ static int search_heur_opcode(struct ndpi_detection_module_struct* ndpi_struct,
       offset = 0;
     }
 
+#ifdef NDPI_ENABLE_DEBUG_MESSAGES
     iter = 0;
+#endif
     rc = 1; /* Exclude */
     while(offset + 2 + 1 /* The first byte is the opcode */ <= ovpn_payload_len) {
       pdu_len = ntohs((*(u_int16_t *)(ovpn_payload + offset)));
@@ -434,7 +439,9 @@ static int search_heur_opcode(struct ndpi_detection_module_struct* ndpi_struct,
                       flow->ovpn_heur_opcode__missing_bytes[dir]);
         return 0; /* Continue */
       }
+#ifdef NDPI_ENABLE_DEBUG_MESSAGES
       iter++;
+#endif
     }
     return rc;
   } else {
