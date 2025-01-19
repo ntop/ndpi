@@ -2098,11 +2098,6 @@ static void ndpi_compute_ja4(struct ndpi_detection_module_struct *ndpi_struct,
     ja_str[2] = '2';
     break;
 
-  case 0x0100: /* SSL 1.0 = “s1” */
-    ja_str[1] = 's';
-    ja_str[2] = '3';
-    break;
-
   case 0xFEFF: /* DTLS 1.0 = “d1” */
     ja_str[1] = 'd';
     ja_str[2] = '1';
